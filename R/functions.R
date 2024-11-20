@@ -9,6 +9,13 @@ library(data.table)
 library(ggplot2)
 library(SpatialExperiment)
 
+#' @title Load cell hierarchies from YAML file
+#'
+#' @description Load cell hierarchies from a YAML file and return a data frame
+#' with the hierarchy levels as columns.
+#' @param hierarchy_file Path to the YAML file containing cell hierarchies
+#' @return A data frame with the hierarchy levels as columns
+#' @export
 load_hierarchies <- function(hierarchy_file) {
   # load YAML file containing cell hierarchies
   hierarchy <- yaml.load_file(hierarchy_file) %>%
@@ -18,10 +25,9 @@ load_hierarchies <- function(hierarchy_file) {
   return(hierarchy)
 }
 
+# recursive helper function to build list obtained list containing cell
+# hierarchies from terminal to top level nodes
 get_hierarchy_list <- function(tree, path = NULL) {
-  # build list of hierarchies obtained from YAML file containing
-  # cell hierarchies from terminal to top level nodes
-
   # return path if terminal node (first element null) is reached
   if (is.null(tree[[1]])) {
     return(list(path))
@@ -38,8 +44,9 @@ get_hierarchy_list <- function(tree, path = NULL) {
   return(result)
 }
 
+# helper function to create a data frame from a list of hierarchies
 make_hierarchies_table <- function(hierarchy_list) {
-
+  # helper function to pad hierarchy to a fixed depth
   pad_hierarchy <- function(hierarchy, depth) {
     length(hierarchy) <- depth
     hierarchy[is.na(hierarchy)] <- hierarchy[1]
@@ -63,6 +70,14 @@ make_hierarchies_table <- function(hierarchy_list) {
   return(hierarchy_df)
 }
 
+#' @title Create a SpatialExperiment object from expression data
+#'
+#' @description Create a SpatialExperiment object from expression data and
+#' metadata.
+#' @param expression_file Path to the expression data file
+#' @param hierarchy_df Data frame containing the hierarchy levels
+#' @return A SpatialExperiment object
+#' @export
 make_spe_from_expr_data <- function(expression_file, hierarchy_df) {
   exp_data <- fread(expression_file, sep = ",", check.names = FALSE)
 
@@ -82,11 +97,13 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_df) {
   # extract metadata and split markers out into separate columns
   # TODO: parametrise column names
   metadata_cols <- c("Image", "Class", "In Tumour")
+  centroid_x_col <- grep("Centroid X", colnames(exp_data), value = TRUE)
+  centroid_y_col <- grep("Centroid Y", colnames(exp_data), value = TRUE)
   cell_metadata <- select(exp_data, all_of(metadata_cols)) %>%
     separate("Class", into = marker_cols, sep = ":") %>%
     left_join(hierarchy_df, by = hierarchy_level)
   cell_coords <- exp_data %>%
-    select(c("Centroid X um", "Centroid Y um")) %>%
+    select(c(centroid_x_col, centroid_y_col)) %>%
     as.matrix()
 
   # row_data contains the marker names
