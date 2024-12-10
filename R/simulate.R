@@ -12,7 +12,7 @@ get_random_positive_marker <- function(markers) {
   result <- paste0(
     sapply(markers, function(marker) {
       if (marker == positive_marker) {
-        paste0(marker, "+")
+        paste0(marker, "+:")
       } else {
         paste0(marker, "-:")
       }

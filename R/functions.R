@@ -103,7 +103,7 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_df) {
     separate("Class", into = marker_cols, sep = ":") %>%
     left_join(hierarchy_df, by = hierarchy_level)
   cell_coords <- exp_data %>%
-    select(c(centroid_x_col, centroid_y_col)) %>%
+    select(all_of(c(centroid_x_col, centroid_y_col))) %>%
     as.matrix()
 
   # row_data contains the marker names
