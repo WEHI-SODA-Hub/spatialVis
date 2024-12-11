@@ -4,17 +4,32 @@
 \alias{make_spe_from_expr_data}
 \title{Create a SpatialExperiment object from expression data}
 \usage{
-make_spe_from_expr_data(expression_file, hierarchy_df)
+make_spe_from_expr_data(
+  expression_file,
+  hierarchy_df,
+  metadata_cols = c("Image", "Class", "In Tumour"),
+  centroid_x_col = "Centroid X",
+  centroid_y_col = "Centroid Y"
+)
 }
 \arguments{
 \item{expression_file}{Path to the expression data file}
 
 \item{hierarchy_df}{Data frame containing the hierarchy levels}
+
+\item{metadata_cols}{Character vector of metadata columns (default: c("Image"
+, "Class", "In Tumour"))}
+
+\item{centroid_x_col}{Column name for the x-coordinate of the cell centroid
+(default: "Centroid X")}
+
+\item{centroid_y_col}{Column name for the y-coordinate of the cell centroid
+(default: "Centroid Y")}
 }
 \value{
 A SpatialExperiment object
 }
 \description{
-Create a SpatialExperiment object from expression data and
-metadata.
+Takes an expression file and a data frame containing the
+hierarchy levels and constructs a SpatialExperiment object.
 }

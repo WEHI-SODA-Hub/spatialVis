@@ -6,7 +6,6 @@ library(tidyr)
 library(purrr)
 library(stringr)
 library(data.table)
-library(ggplot2)
 library(SpatialExperiment)
 
 #' @title Load cell hierarchies from YAML file
@@ -72,13 +71,24 @@ make_hierarchies_table <- function(hierarchy_list) {
 
 #' @title Create a SpatialExperiment object from expression data
 #'
-#' @description Create a SpatialExperiment object from expression data and
-#' metadata.
+#' @description Takes an expression file and a data frame containing the
+#' hierarchy levels and constructs a SpatialExperiment object.
 #' @param expression_file Path to the expression data file
 #' @param hierarchy_df Data frame containing the hierarchy levels
+#' @param metadata_cols Character vector of metadata columns (default: c("Image"
+#' , "Class", "In Tumour"))
+#' @param centroid_x_col Column name for the x-coordinate of the cell centroid
+#' (default: "Centroid X")
+#' @param centroid_y_col Column name for the y-coordinate of the cell centroid
+#' (default: "Centroid Y")
 #' @return A SpatialExperiment object
 #' @export
-make_spe_from_expr_data <- function(expression_file, hierarchy_df) {
+make_spe_from_expr_data <- function(expression_file, hierarchy_df,
+                                    metadata_cols = c("Image",
+                                                      "Class",
+                                                      "In Tumour"),
+                                    centroid_x_col = "Centroid X",
+                                    centroid_y_col = "Centroid Y") {
   exp_data <- fread(expression_file, sep = ",", check.names = FALSE)
 
   # extract expression columns and construct matrix with markers for rows
@@ -95,10 +105,8 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_df) {
   marker_cols[1] <- hierarchy_level
 
   # extract metadata and split markers out into separate columns
-  # TODO: parametrise column names
-  metadata_cols <- c("Image", "Class", "In Tumour")
-  centroid_x_col <- grep("Centroid X", colnames(exp_data), value = TRUE)
-  centroid_y_col <- grep("Centroid Y", colnames(exp_data), value = TRUE)
+  centroid_x_col <- grep(centroid_x_col, colnames(exp_data), value = TRUE)
+  centroid_y_col <- grep(centroid_y_col, colnames(exp_data), value = TRUE)
   cell_metadata <- select(exp_data, all_of(metadata_cols)) %>%
     separate("Class", into = marker_cols, sep = ":") %>%
     left_join(hierarchy_df, by = hierarchy_level)
