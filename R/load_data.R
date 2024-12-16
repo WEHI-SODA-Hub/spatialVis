@@ -1,12 +1,4 @@
-library(yaml)
-library(data.table)
 library(dplyr)
-library(tidyverse)
-library(tidyr)
-library(purrr)
-library(stringr)
-library(data.table)
-library(SpatialExperiment)
 
 #' @title Load cell hierarchies from YAML file
 #'
@@ -17,7 +9,7 @@ library(SpatialExperiment)
 #' @export
 load_hierarchies <- function(hierarchy_file) {
   # load YAML file containing cell hierarchies
-  hierarchy <- yaml.load_file(hierarchy_file) %>%
+  hierarchy <- yaml::yaml.load_file(hierarchy_file) %>%
     get_hierarchy_list %>%
     make_hierarchies_table
 
@@ -47,21 +39,22 @@ get_hierarchy_list <- function(tree, path = NULL) {
 make_hierarchies_table <- function(hierarchy_list) {
   # helper function to pad hierarchy to a fixed depth
   pad_hierarchy <- function(hierarchy, depth) {
+    last_element <- hierarchy[length(hierarchy)]
     length(hierarchy) <- depth
-    hierarchy[is.na(hierarchy)] <- hierarchy[1]
+    hierarchy[is.na(hierarchy)] <- last_element
     return(hierarchy)
   }
 
   # find depth of hierarchy
-  depth <- max(map_int(hierarchy_list, length))
+  depth <- max(purrr::map_int(hierarchy_list, length))
 
   # pad and reverse so higher levels come first
-  padded_hierarchies <- lapply(hierarchy_list, pad_hierarchy, depth) %>%
-    lapply(rev)
+  padded_hierarchies <- lapply(hierarchy_list, rev) %>%
+    lapply(pad_hierarchy, depth)
 
   # convert to data frame
-  hierarchy_df <- map_dfr(padded_hierarchies,
-                          ~data.frame(t(.), stringsAsFactors = FALSE))
+  hierarchy_df <- purrr::map_dfr(padded_hierarchies,
+                                 ~data.frame(t(.), stringsAsFactors = FALSE))
 
   # rename columns
   colnames(hierarchy_df) <- paste0("HierarchyLevel", seq(depth))
@@ -89,29 +82,35 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_df,
                                                       "In Tumour"),
                                     centroid_x_col = "Centroid X",
                                     centroid_y_col = "Centroid Y") {
-  exp_data <- fread(expression_file, sep = ",", check.names = FALSE)
+  exp_data <- data.table::fread(expression_file, sep = ",", check.names = FALSE)
 
   # extract expression columns and construct matrix with markers for rows
   exp_cols <- grep(": Mean", colnames(exp_data), value = TRUE)
-  exp_matrix <- exp_data %>% select(all_of(exp_cols)) %>% t() %>% as.matrix()
+  exp_matrix <- exp_data %>%
+    dplyr::select(dplyr::all_of(exp_cols)) %>%
+    t() %>%
+    as.matrix()
 
-  # split marker column into constituent parts
+  rownames(exp_matrix) <- rownames(exp_matrix) %>%
+    stringr::str_replace_all("(: Cell: Mean)|(: Nucleus: Mean)", "")
+
+  colnames(exp_data)   # split marker column into constituent parts
   marker_cols <- exp_data$Class[1] %>%
-    str_split(":") %>%
+    stringr::str_split(":") %>%
     unlist() %>%
-    str_trim() %>%
-    str_replace_all("[-+]$", "")
+    stringr::str_trim() %>%
+    stringr::str_replace_all("[-+]$", "")
   hierarchy_level <- paste0("HierarchyLevel", ncol(hierarchy_df))
   marker_cols[1] <- hierarchy_level
 
   # extract metadata and split markers out into separate columns
   centroid_x_col <- grep(centroid_x_col, colnames(exp_data), value = TRUE)
   centroid_y_col <- grep(centroid_y_col, colnames(exp_data), value = TRUE)
-  cell_metadata <- select(exp_data, all_of(metadata_cols)) %>%
-    separate("Class", into = marker_cols, sep = ":") %>%
-    left_join(hierarchy_df, by = hierarchy_level)
+  cell_metadata <- dplyr::select(exp_data, dplyr::all_of(metadata_cols)) %>%
+    tidyr::separate("Class", into = marker_cols, sep = ":") %>%
+    dplyr::left_join(hierarchy_df, by = hierarchy_level)
   cell_coords <- exp_data %>%
-    select(all_of(c(centroid_x_col, centroid_y_col))) %>%
+    dplyr::select(dplyr::all_of(c(centroid_x_col, centroid_y_col))) %>%
     as.matrix()
 
   # row_data contains the marker names

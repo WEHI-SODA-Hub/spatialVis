@@ -1,4 +1,3 @@
-library(spaSim)
 library(dplyr)
 
 # List of example markers
@@ -42,14 +41,14 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
   set.seed(seed)
 
   # use spaSim to simulate background cells
-  bg <- simulate_background_cells(n_cells = n_cells,
-                                  width = width,
-                                  height = height,
-                                  method = "Hardcore",
-                                  min_d = 10,
-                                  oversampling_rate = 1.6,
-                                  Cell.Type = "Others",
-                                  plot_image = FALSE)
+  bg <- spaSim::simulate_background_cells(n_cells = n_cells,
+                                          width = width,
+                                          height = height,
+                                          method = "Hardcore",
+                                          min_d = 10,
+                                          oversampling_rate = 1.6,
+                                          Cell.Type = "Other",
+                                          plot_image = FALSE)
 
   # create empty expression values
   expr <- matrix(nrow = n_cells, ncol = length(markers), 0)
