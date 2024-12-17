@@ -13,4 +13,6 @@ Imports:
  data.table,
  SpatialExperiment,
  spaSim,
- ggplot2
+ ggplot2,
+ cowplot,
+ gridExtra

@@ -1,5 +1,79 @@
 library(dplyr)
 
+# Heatmap marker plot
+create_raster_plot <- function(long_mean_intensities, markers, celltypes,
+                               parenttypes, celltype_colname, parent_colname) {
+
+  # order factors according to arguments
+  lmi_parent_factors <- factor(long_mean_intensities %>% pull(parent_colname),
+                               levels = parenttypes)
+  lmi_cell_factors <- factor(long_mean_intensities %>% pull(celltype_colname),
+                             levels = rev(celltypes))
+  lmi_marker_factors <- factor(long_mean_intensities %>% pull("marker"),
+                               levels = markers)
+  long_mean_intensities[, parent_colname] <- lmi_parent_factors
+  long_mean_intensities[, celltype_colname] <- lmi_cell_factors
+  long_mean_intensities[, "marker"] <- lmi_marker_factors
+
+  raster_plot <- ggplot2::ggplot(long_mean_intensities,
+                                 ggplot2::aes(x = marker,
+                                              y = !!as.name(celltype_colname),
+                                              fill = standardised_mean)) +
+    ggplot2::geom_raster() +
+    ggplot2::geom_tile(ggplot2::aes(fill = standardised_mean),
+                       colour = "black", linewidth = 0.5) +
+    ggplot2::scale_fill_distiller(palette = "YlGnBu") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
+    ggplot2::facet_grid(rows = dplyr::vars(!!as.name(parent_colname)),
+                        scales = "free_y", space = "free") +
+    ggplot2::theme(
+      panel.background = ggplot2::element_blank(),
+      strip.text.y = ggplot2::element_blank(),
+      legend.position = "top",
+      plot.margin = ggplot2::margin(t = 0, # Top margin
+                                    r = -0.8, # Right margin
+                                    b = 0, # Bottom margin
+                                    l = 0),
+      panel.spacing = ggplot2::unit(0.001, "cm")
+    )
+
+  return(raster_plot)
+}
+
+# Bar plot of cell type counts
+create_bar_plot <- function(mean_intensities, celltypes, parenttypes,
+                            celltype_colname, parent_colname) {
+  # order factors according to arguments
+  mi_parent_factors <- factor(mean_intensities %>% pull(parent_colname),
+                              levels = parenttypes)
+  mi_cell_factors <- factor(mean_intensities %>% pull(celltype_colname),
+                            levels = rev(celltypes))
+  mean_intensities[, parent_colname] <- mi_parent_factors
+  mean_intensities[, celltype_colname] <- mi_cell_factors
+
+  bar_plot <- ggplot2::ggplot(mean_intensities,
+                              ggplot2::aes(x = !!as.name(celltype_colname),
+                                           y = count)) +
+    ggplot2::geom_bar(stat = "identity") +
+    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+                   axis.text.y = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_text(angle = 90, hjust = 1),
+                   axis.title.x = ggplot2::element_blank(),
+                   axis.ticks.y = ggplot2::element_blank(),
+                   strip.text.y = ggplot2::element_blank(),
+                   plot.margin = ggplot2::margin(t = 0,  # Top margin
+                                                 r = 10,  # Right margin
+                                                 b = 0,  # Bottom margin
+                                                 l = -0.8),
+                   panel.background = ggplot2::element_blank(),
+                   panel.spacing = ggplot2::unit(0.001, "cm")) +
+    ggplot2::coord_flip(ylim = c(0, max(mean_intensities$count))) +
+    ggplot2::facet_grid(rows = vars(!!as.name(parent_colname)),
+                        scales = "free_y", space = "free")
+
+  return(bar_plot)
+}
+
 #' @title Plot marker heatmap
 #'
 #' @description Plot a heatmap of mean marker intensities in cell types.
@@ -16,12 +90,25 @@ library(dplyr)
 #' information (default: "HierarchyLevel2")
 #' @return A ggplot2 object
 #' @export
-plot_marker_heatmap <- function(spe, markers, celltypes, parenttypes,
+plot_marker_heatmap <- function(spe, markers = NULL,
+                                celltypes = NULL,
+                                parenttypes = NULL,
                                 celltype_colname = "HierarchyLevel4",
                                 parent_colname = "HierarchyLevel2") {
 
   stopifnot(celltype_colname %in% colnames(SingleCellExperiment::colData(spe)))
   stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
+
+  # get all cell types if not provided
+  if (is.null(celltypes)) {
+    celltypes <- unique(SingleCellExperiment::colData(spe)[[celltype_colname]])
+  }
+  if (is.null(parenttypes)) {
+    parenttypes <- unique(SingleCellExperiment::colData(spe)[[parent_colname]])
+  }
+  if (is.null(markers)) {
+    markers <- rownames(spe)
+  }
 
   # create mean intensites for each marker in each cell type
   mean_intensities <- SingleCellExperiment::colData(spe) %>%
@@ -50,38 +137,17 @@ plot_marker_heatmap <- function(spe, markers, celltypes, parenttypes,
     dplyr::mutate(standardised_mean = scale(mean)[, 1]) %>%
     dplyr::filter(marker %in% markers)
 
-  # order factors according to arguments
-  parenttype_factors <- factor(long_mean_intensities %>% pull(parent_colname),
-                               levels = parenttypes)
-  celltype_factors <- factor(long_mean_intensities %>% pull(celltype_colname),
-                             levels = rev(celltypes))
-  marker_factors <- factor(long_mean_intensities %>% pull("marker"),
-                           levels = markers)
-  long_mean_intensities[, parent_colname] <- parenttype_factors
-  long_mean_intensities[, celltype_colname] <- celltype_factors
-  long_mean_intensities[, "marker"] <- marker_factors
+  raster_plot <- create_raster_plot(long_mean_intensities, markers, celltypes,
+                                    parenttypes, celltype_colname,
+                                    parent_colname)
+  bar_plot <- create_bar_plot(mean_intensities, celltypes, parenttypes,
+                              celltype_colname, parent_colname)
 
-  raster_plot <- ggplot2::ggplot(long_mean_intensities,
-                                 ggplot2::aes(x = marker,
-                                              y = !!as.name(celltype_colname),
-                                              fill = standardised_mean)) +
-    ggplot2::geom_raster() +
-    ggplot2::geom_tile(ggplot2::aes(fill = standardised_mean),
-                       colour = "black", linewidth = 0.5) +
-    ggplot2::scale_fill_distiller(palette = "YlGnBu") +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
-    ggplot2::facet_grid(rows = dplyr::vars(!!as.name(parent_colname)),
-                        scales = "free_y", space = "free") +
-    ggplot2::theme(
-      panel.background = ggplot2::element_blank(),
-      strip.text.y = ggplot2::element_blank(),
-      legend.position = "top",
-      plot.margin = ggplot2::margin(t = 0, # Top margin
-                                    r = -0.8, # Right margin
-                                    b = 0, # Bottom margin
-                                    l = 0),
-      panel.spacing = ggplot2::unit(0.001, "cm")
-    )
+  aligned <- cowplot::align_plots(raster_plot, bar_plot, align = "h",
+                                  axis = "tblr")
 
-  return(raster_plot)
+  p <- gridExtra::grid.arrange(aligned[[1]], aligned[[2]],
+                               ncol = 2, nrow = 1, widths = c(4, 1))
+
+  return(p)
 }
