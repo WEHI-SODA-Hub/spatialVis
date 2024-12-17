@@ -15,4 +15,7 @@ Imports:
  spaSim,
  ggplot2,
  cowplot,
- gridExtra
+ gridExtra,
+ Rcpp,
+ uwot,
+ umap
