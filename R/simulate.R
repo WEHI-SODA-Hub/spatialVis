@@ -50,12 +50,33 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
                                           Cell.Type = "Other",
                                           plot_image = FALSE)
 
+  idents <- c("Stromal cells", "Epithelial cells", "Other")
+  mix_bg <- spaSim::simulate_mixing(bg_sample = bg,
+                                    idents = idents,
+                                    props = c(0.2, 0.3, 0.5),
+                                    plot_image = TRUE)
+
+  cluster1 <- list(name_of_cluster_cell = "Treg cells", size = 500,
+                   shape = "Oval", centre_loc = data.frame(x = 600, y = 600),
+                   infiltration_types = c("Treg cells", "Other"),
+                   infiltration_proportions = c(0.1, 0.05))
+  cluster2 <- list(name_of_cluster_cell = "CD4 T cells", size = 600,
+                   shape = "Irregular",
+                   centre_loc = data.frame(x = 1500, y = 500),
+                   infiltration_types = c("CD4 T cells", "Other"),
+                   infiltration_proportions = c(0.1, 0.05))
+  cluster_properties <- list(cluster1, cluster2)
+  clusters <- spaSim::simulate_clusters(bg_sample = mix_bg,
+                                        n_clusters = 2,
+                                        bg_type = "Other",
+                                        cluster_properties = cluster_properties)
+
   # create empty expression values
   expr <- matrix(nrow = n_cells, ncol = length(markers), 0)
   colnames(expr) <- markers
 
   # create a data frame with expression values for each marker
-  marker_data <- cbind(bg, expr) %>%
+  marker_data <- cbind(clusters, expr) %>%
     rowwise() %>%
     mutate(across(all_of(markers), ~ simulate_expression(1, mean_log = 0.5,
                                                          sd_log = 0.5))) %>%
@@ -75,9 +96,9 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
 
   # rename cols
   marker_data <- marker_data %>%
-    rename(Cell.Y.Position = "Centroid Y",
-           Cell.X.Position = "Centroid X") %>%
-    rename_with(~ paste0(.x, ": Cell: Mean"), all_of(markers))
+    dplyr::rename(`Centroid Y` = Cell.Y.Position,
+                  `Centroid X` = Cell.X.Position) %>%
+    dplyr::rename_with(~ paste0(.x, ": Cell: Mean"), dplyr::all_of(markers))
 
   return(marker_data)
 }
