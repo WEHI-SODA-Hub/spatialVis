@@ -2,7 +2,8 @@ library(dplyr)
 
 # Heatmap marker plot
 create_raster_plot <- function(long_mean_intensities, markers, celltypes,
-                               parenttypes, celltype_colname, parent_colname) {
+                               parenttypes, celltype_colname, parent_colname,
+                               fill = "standardised_mean") {
 
   # order factors according to arguments
   lmi_parent_factors <- factor(long_mean_intensities %>% pull(parent_colname),
@@ -16,11 +17,11 @@ create_raster_plot <- function(long_mean_intensities, markers, celltypes,
   long_mean_intensities[, "marker"] <- lmi_marker_factors
 
   raster_plot <- ggplot2::ggplot(long_mean_intensities,
-                                 ggplot2::aes(x = marker,
+                                 ggplot2::aes(x = marker, # nolint: object_usage_linter, line_length_linter.
                                               y = !!as.name(celltype_colname),
-                                              fill = standardised_mean)) +
+                                              fill = !!as.name(fill))) +
     ggplot2::geom_raster() +
-    ggplot2::geom_tile(ggplot2::aes(fill = standardised_mean),
+    ggplot2::geom_tile(ggplot2::aes(fill = !!as.name(fill)),
                        colour = "black", linewidth = 0.5) +
     ggplot2::scale_fill_distiller(palette = "YlGnBu") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
@@ -74,43 +75,32 @@ create_bar_plot <- function(mean_intensities, celltypes, parenttypes,
   return(bar_plot)
 }
 
-#' @title Plot marker heatmap
-#'
-#' @description Plot a heatmap of mean marker intensities in cell types.
-#' @param spe SingleCellExperiment object containing marker intensities
-#' @param markers Character vector of markers to plot and the order in which
-#' they should be plotted
-#' @param celltypes Character vector of cell types to plot and the order in
-#' which they should be plotted
-#' @param parenttypes Character vector of parent cell types to plot and the
-#' order in which they should be plotted
-#' @param celltype_colname Column name in colData containing cell type
-#' information (default: "HierarchyLevel4")
-#' @param parent_colname Column name in colData containing parent cell type
-#' information (default: "HierarchyLevel2")
-#' @return A ggplot2 object
-#' @export
-plot_marker_heatmap <- function(spe, markers = NULL,
-                                celltypes = NULL,
-                                parenttypes = NULL,
-                                celltype_colname = "HierarchyLevel4",
-                                parent_colname = "HierarchyLevel2") {
+# calculate proportions of positive markers
+get_proportions <- function(spe, markers, celltypes, celltype_colname,
+                            parent_colname) {
+  proportions <- SingleCellExperiment::colData(spe) %>%
+    as.data.frame() %>%
+    dplyr::mutate(dplyr::across(dplyr::all_of(markers),
+                                ~ as.numeric(grepl("\\+", .)))) %>%
+    dplyr::select(dplyr::all_of(c(celltype_colname, parent_colname,
+                                  markers))) %>%
+    dplyr::group_by(pick(!!as.name(celltype_colname),
+                         !!as.name(parent_colname))) %>%
+    dplyr::summarise(
+      count = dplyr::n(),
+      dplyr::across(dplyr::where(is.numeric), ~ sum(.) / length(.))
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(!!as.name(parent_colname), count)  %>%
+    dplyr::filter(!!as.name(celltype_colname) %in% celltypes) %>%
+    as.data.frame()
 
-  stopifnot(celltype_colname %in% colnames(SingleCellExperiment::colData(spe)))
-  stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
+  return(proportions)
+}
 
-  # get all cell types if not provided
-  if (is.null(celltypes)) {
-    celltypes <- unique(SingleCellExperiment::colData(spe)[[celltype_colname]])
-  }
-  if (is.null(parenttypes)) {
-    parenttypes <- unique(SingleCellExperiment::colData(spe)[[parent_colname]])
-  }
-  if (is.null(markers)) {
-    markers <- rownames(spe)
-  }
-
-  # create mean intensites for each marker in each cell type
+# calculate mean intensities of markers
+get_mean_intensities <- function(spe, celltypes, celltype_colname,
+                                 parent_colname) {
   mean_intensities <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
     dplyr::select(dplyr::all_of(c(celltype_colname, parent_colname))) %>%
@@ -126,21 +116,79 @@ plot_marker_heatmap <- function(spe, markers = NULL,
     dplyr::filter(!!as.name(celltype_colname) %in% celltypes) %>%
     as.data.frame()
 
-  stopifnot(nrow(mean_intensities) > 0)
+  return(mean_intensities)
+}
+
+#' @title Plot marker heatmap
+#'
+#' @description Plot a heatmap of mean marker intensities or proportions
+#' @param spe SingleCellExperiment object containing marker intensities
+#' and marker positivity
+#' @param markers Character vector of markers to plot and the order in which
+#' they should be plotted
+#' @param celltypes Character vector of cell types to plot and the order in
+#' which they should be plotted
+#' @param parenttypes Character vector of parent cell types to plot and the
+#' order in which they should be plotted
+#' @param celltype_colname Column name in colData containing cell type
+#' information (default: "HierarchyLevel4")
+#' @param parent_colname Column name in colData containing parent cell type
+#' information (default: "HierarchyLevel2")
+#' @param value The value to plot. Either "expression" (default) or
+#' "proportion"
+#' @return A ggplot2 object
+#' @export
+plot_marker_heatmap <- function(spe, markers = NULL,
+                                celltypes = NULL,
+                                parenttypes = NULL,
+                                celltype_colname = "HierarchyLevel4",
+                                parent_colname = "HierarchyLevel2",
+                                value = "expression") {
+
+  stopifnot(celltype_colname %in% colnames(SingleCellExperiment::colData(spe)))
+  stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
+
+  # get all cell types if not provided
+  if (is.null(celltypes)) {
+    celltypes <- unique(SingleCellExperiment::colData(spe)[[celltype_colname]])
+  }
+  if (is.null(parenttypes)) {
+    parenttypes <- unique(SingleCellExperiment::colData(spe)[[parent_colname]])
+  }
+  if (is.null(markers)) {
+    markers <- rownames(spe)
+  }
+
+  df <- switch(value,
+               expression = get_mean_intensities(spe, celltypes,
+                                                 celltype_colname,
+                                                 parent_colname),
+               proportion = get_proportions(spe, markers, celltypes,
+                                            celltype_colname, parent_colname))
+
+  stopifnot(nrow(df) > 0)
 
   # convert to long format and scale for plotting
-  long_mean_intensities <- mean_intensities %>%
+  long_df <- df %>%
     tidyr::pivot_longer(-c(parent_colname, celltype_colname, "count"),
                         names_to = "marker",
-                        values_to = "mean") %>%
-    dplyr::group_by(marker) %>%
-    dplyr::mutate(standardised_mean = scale(mean)[, 1]) %>%
-    dplyr::filter(marker %in% markers)
+                        values_to = value) %>%
+    dplyr::group_by(marker) # nolint: object_usage_linter.
 
-  raster_plot <- create_raster_plot(long_mean_intensities, markers, celltypes,
+  if (value == "expression") {
+    long_df <- long_df %>%
+      dplyr::mutate(standardised_mean = scale(expression)[, 1]) %>%
+      dplyr::filter(marker %in% markers) # nolint: object_usage_linter.
+    value <- "standardised_mean"
+  } else {
+    long_df <- long_df %>%
+      dplyr::filter(marker %in% markers) # nolint: object_usage_linter
+  }
+
+  raster_plot <- create_raster_plot(long_df, markers, celltypes,
                                     parenttypes, celltype_colname,
-                                    parent_colname)
-  bar_plot <- create_bar_plot(mean_intensities, celltypes, parenttypes,
+                                    parent_colname, fill = value)
+  bar_plot <- create_bar_plot(df, celltypes, parenttypes,
                               celltype_colname, parent_colname)
 
   aligned <- cowplot::align_plots(raster_plot, bar_plot, align = "h",

@@ -96,8 +96,8 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
 
   # rename cols
   marker_data <- marker_data %>%
-    dplyr::rename(`Centroid Y` = Cell.Y.Position,
-                  `Centroid X` = Cell.X.Position) %>%
+    dplyr::rename(`Centroid Y` = Cell.Y.Position, # nolint: object_usage_linter.
+                  `Centroid X` = Cell.X.Position) %>% # nolint: object_usage_linter, line_length_linter.
     dplyr::rename_with(~ paste0(.x, ": Cell: Mean"), dplyr::all_of(markers))
 
   return(marker_data)

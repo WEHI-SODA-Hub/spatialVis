@@ -10,11 +10,13 @@ plot_marker_heatmap(
   celltypes = NULL,
   parenttypes = NULL,
   celltype_colname = "HierarchyLevel4",
-  parent_colname = "HierarchyLevel2"
+  parent_colname = "HierarchyLevel2",
+  value = "expression"
 )
 }
 \arguments{
-\item{spe}{SingleCellExperiment object containing marker intensities}
+\item{spe}{SingleCellExperiment object containing marker intensities
+and marker positivity}
 
 \item{markers}{Character vector of markers to plot and the order in which
 they should be plotted}
@@ -30,10 +32,13 @@ information (default: "HierarchyLevel4")}
 
 \item{parent_colname}{Column name in colData containing parent cell type
 information (default: "HierarchyLevel2")}
+
+\item{value}{The value to plot. Either "expression" (default) or
+"proportion"}
 }
 \value{
 A ggplot2 object
 }
 \description{
-Plot a heatmap of mean marker intensities in cell types.
+Plot a heatmap of mean marker intensities or proportions
 }
