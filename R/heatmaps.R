@@ -144,7 +144,7 @@ plot_marker_heatmap <- function(spe, markers = NULL,
                                 celltype_colname = "HierarchyLevel4",
                                 parent_colname = "HierarchyLevel2",
                                 value = "expression") {
-
+  stopifnot(value %in% c("expression", "proportion"))
   stopifnot(celltype_colname %in% colnames(SingleCellExperiment::colData(spe)))
   stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
 

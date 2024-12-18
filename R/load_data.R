@@ -92,14 +92,16 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_df,
     as.matrix()
 
   rownames(exp_matrix) <- rownames(exp_matrix) %>%
-    stringr::str_replace_all("(: Cell: Mean)|(: Nucleus: Mean)", "")
+    stringr::str_replace_all("(: Cell: Mean)|(: Nucleus: Mean)", "") %>%
+    stringr::str_replace_all("[\\-\\+_() ]", "_")
 
-  colnames(exp_data)   # split marker column into constituent parts
+  # split marker column into constituent parts
   marker_cols <- exp_data$Class[1] %>%
     stringr::str_split(":") %>%
     unlist() %>%
     stringr::str_trim() %>%
-    stringr::str_replace_all("[-+]$", "")
+    stringr::str_replace_all("[-+]$", "") %>%
+    stringr::str_replace_all("[\\-\\+_() ]", "_")
   hierarchy_level <- paste0("HierarchyLevel", ncol(hierarchy_df))
   marker_cols[1] <- hierarchy_level
 
@@ -108,6 +110,8 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_df,
   centroid_y_col <- grep(centroid_y_col, colnames(exp_data), value = TRUE)
   cell_metadata <- dplyr::select(exp_data, dplyr::all_of(metadata_cols)) %>%
     tidyr::separate("Class", into = marker_cols, sep = ":") %>%
+    dplyr::mutate(dplyr::across(dplyr::any_of(marker_cols[-1]),
+                                ~ stringr::str_sub(., -1))) %>%
     dplyr::left_join(hierarchy_df, by = hierarchy_level)
   cell_coords <- exp_data %>%
     dplyr::select(dplyr::all_of(c(centroid_x_col, centroid_y_col))) %>%
