@@ -78,10 +78,11 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
 
   # create a data frame with expression values for each marker
   marker_data <- cbind(clusters, expr) %>%
-    rowwise() %>%
-    mutate(across(all_of(markers), ~ simulate_expression(1, mean_log = 0.5,
-                                                         sd_log = 0.5))) %>%
-    ungroup()
+    dplyr::rowwise() %>%
+    dplyr::mutate(dplyr::across(dplyr::all_of(markers),
+                                ~ simulate_expression(1, mean_log = 0.5,
+                                                      sd_log = 0.5))) %>%
+    dplyr::ungroup()
 
   # add randomly positive marker to each cell
   marker_data$Class <- sapply(marker_data$Cell.Type,
