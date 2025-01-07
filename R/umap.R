@@ -14,6 +14,7 @@ library(dplyr)
 #' information (default: "HierarchyLevel2")
 #' @return A ggplot2 object
 #' @export
+#' @importFrom dplyr %>%
 plot_umap <- function(spe, markers = NULL, celltypes = NULL,
                       celltype_colname = "HierarchyLevel4",
                       parent_colname = "HierarchyLevel2") {

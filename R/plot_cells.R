@@ -12,6 +12,7 @@ library(dplyr)
 #' @param pointsize Size of points in the plot (default: 0.5)
 #' @return ggplot2 object
 #' @export
+#' @importFrom dplyr %>%
 plot_celltypes <- function(spe, celltype_colname = "HierarchyLevel4",
                            centroid_x_col = "Centroid X",
                            centroid_y_col = "Centroid Y",

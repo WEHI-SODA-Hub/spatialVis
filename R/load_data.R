@@ -7,6 +7,7 @@ library(dplyr)
 #' @param hierarchy_file Path to the YAML file containing cell hierarchies
 #' @return A data frame with the hierarchy levels as columns
 #' @export
+#' @importFrom dplyr %>%
 load_hierarchies <- function(hierarchy_file) {
   # load YAML file containing cell hierarchies
   hierarchy <- yaml::yaml.load_file(hierarchy_file) %>%
@@ -76,6 +77,7 @@ make_hierarchies_table <- function(hierarchy_list) {
 #' (default: "Centroid Y")
 #' @return A SpatialExperiment object
 #' @export
+#' @importFrom dplyr %>%
 make_spe_from_expr_data <- function(expression_file, hierarchy_df,
                                     metadata_cols = c("Image",
                                                       "Class",

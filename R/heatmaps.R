@@ -138,6 +138,7 @@ get_mean_intensities <- function(spe, celltypes, celltype_colname,
 #' "proportion"
 #' @return A ggplot2 object
 #' @export
+#' @importFrom dplyr %>%
 plot_marker_heatmap <- function(spe, markers = NULL,
                                 celltypes = NULL,
                                 parenttypes = NULL,

@@ -36,6 +36,7 @@ simulate_expression <- function(n, mean_log = 0, sd_log = 1) {
 #' @param seed The random seed to use
 #' @return A data frame with simulated cell data
 #' @export
+#' @importFrom dplyr %>%
 simulate_cells <- function(markers = example_markers, n_cells = 5000,
                            width = 2000, height = 2000, seed = 123) {
   set.seed(seed)
