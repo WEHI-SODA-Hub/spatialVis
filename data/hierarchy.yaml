@@ -1,0 +1,30 @@
+Immune cells:
+    Lymphoid cells:
+        T cells: 
+            CD4 T cells:
+                - null
+            CD8 T cells:
+                - null
+            Treg cells:
+                - null
+            yd T cells:
+                - null
+        B cells:
+          - null
+        NK cells:
+          - null
+    Myeloid cells:
+        Macrophages:
+            - null
+        Dendritic cells:
+            - null
+        Mast cells:
+            - null
+        Granulocytes:
+            - null
+Epithelial cells:
+    - null
+Stromal cells:
+    - null
+Other:
+    - null
