@@ -3,6 +3,7 @@ Type: Package
 Title: Plots and spatial analysis for MIBI
 Version: 0.0.1.0
 RoxygenNote: 7.3.2
+Encoding: UTF-8
 Imports:
  yaml,
  dplyr,
@@ -14,6 +15,7 @@ Imports:
  SpatialExperiment,
  spaSim,
  ggplot2,
+ RColorBrewer,
  cowplot,
  gridExtra,
  Rcpp,
