@@ -80,8 +80,8 @@ make_hierarchies_table <- function(hierarchy_list) {
 #' @importFrom dplyr %>%
 make_spe_from_expr_data <- function(expression_file, hierarchy_df,
                                     metadata_cols = c("Image",
-                                                      "Class",
                                                       "In Tumour"),
+                                    marker_col = "Class",
                                     centroid_x_col = "Centroid X",
                                     centroid_y_col = "Centroid Y") {
   exp_data <- data.table::fread(expression_file, sep = ",", check.names = FALSE)
@@ -110,8 +110,9 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_df,
   # extract metadata and split markers out into separate columns
   centroid_x_col <- grep(centroid_x_col, colnames(exp_data), value = TRUE)
   centroid_y_col <- grep(centroid_y_col, colnames(exp_data), value = TRUE)
-  cell_metadata <- dplyr::select(exp_data, dplyr::all_of(metadata_cols)) %>%
-    tidyr::separate("Class", into = marker_cols, sep = ":") %>%
+  cell_metadata <- dplyr::select(exp_data, dplyr::all_of(c(marker_col,
+                                                           metadata_cols))) %>%
+    tidyr::separate(marker_col, into = marker_cols, sep = ":") %>%
     dplyr::mutate(dplyr::across(dplyr::any_of(marker_cols[-1]),
                                 ~ stringr::str_sub(., -1))) %>%
     dplyr::left_join(hierarchy_df, by = hierarchy_level)

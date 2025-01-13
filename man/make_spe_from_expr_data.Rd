@@ -7,7 +7,8 @@
 make_spe_from_expr_data(
   expression_file,
   hierarchy_df,
-  metadata_cols = c("Image", "Class", "In Tumour"),
+  metadata_cols = c("Image", "In Tumour"),
+  marker_col = "Class",
   centroid_x_col = "Centroid X",
   centroid_y_col = "Centroid Y"
 )
