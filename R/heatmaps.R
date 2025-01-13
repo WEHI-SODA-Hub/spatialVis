@@ -6,11 +6,13 @@ create_raster_plot <- function(long_mean_intensities, markers, celltypes,
                                fill = "standardised_mean") {
 
   # order factors according to arguments
-  lmi_parent_factors <- factor(long_mean_intensities %>% pull(parent_colname),
+  lmi_parent_factors <- factor(long_mean_intensities %>%
+                                 dplyr::pull(parent_colname),
                                levels = parenttypes)
-  lmi_cell_factors <- factor(long_mean_intensities %>% pull(celltype_colname),
+  lmi_cell_factors <- factor(long_mean_intensities %>%
+                               dplyr::pull(celltype_colname),
                              levels = rev(celltypes))
-  lmi_marker_factors <- factor(long_mean_intensities %>% pull("marker"),
+  lmi_marker_factors <- factor(long_mean_intensities %>% dplyr::pull("marker"),
                                levels = markers)
   long_mean_intensities[, parent_colname] <- lmi_parent_factors
   long_mean_intensities[, celltype_colname] <- lmi_cell_factors
@@ -45,9 +47,9 @@ create_raster_plot <- function(long_mean_intensities, markers, celltypes,
 create_bar_plot <- function(mean_intensities, celltypes, parenttypes,
                             celltype_colname, parent_colname) {
   # order factors according to arguments
-  mi_parent_factors <- factor(mean_intensities %>% pull(parent_colname),
+  mi_parent_factors <- factor(mean_intensities %>% dplyr::pull(parent_colname),
                               levels = parenttypes)
-  mi_cell_factors <- factor(mean_intensities %>% pull(celltype_colname),
+  mi_cell_factors <- factor(mean_intensities %>% dplyr::pull(celltype_colname),
                             levels = rev(celltypes))
   mean_intensities[, parent_colname] <- mi_parent_factors
   mean_intensities[, celltype_colname] <- mi_cell_factors
