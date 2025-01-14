@@ -1,6 +1,6 @@
-# imcvis
+# spatialVis
 
-Imcvis is an R package for downstream QC, visualisation and analysis of MIBI
+SpatialVis is an R package for downstream QC, visualisation and analysis of MIBI
 data. Currently, the following analyses are supported:
 
 - marker heatmaps (expression and proportion positive)
@@ -32,7 +32,7 @@ if (!requireNamespace("magick", quietly = TRUE)) {
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install(c("SpatialExperiment", "spaSim"), ask = FALSE)
-devtools::install_github("WEHI-SODA-Hub/imcvis")
+devtools::install_github("WEHI-SODA-Hub/spatialVis")
 ```
 
 ## Basic usage
@@ -40,7 +40,7 @@ devtools::install_github("WEHI-SODA-Hub/imcvis")
 Loading your data:
 
 ```R
-library(imcvis)
+library(spatialVis)
 
 hierarchy_df <- load_hierarchies("data/hierarchy.yaml")
 spe <- make_spe_from_expr_data("data/simulated.csv", hierarchy_df)

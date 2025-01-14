@@ -9,6 +9,6 @@ RUN apt-get update && \
 
 RUN R -e "install.packages(c('magick', 'devtools', 'quarto'))"
 RUN R -e "BiocManager::install(c('SpatialExperiment', 'spaSim'), ask = FALSE)"
-RUN R -e "devtools::install_github('WEHI-SODA-Hub/imcvis')"
+RUN R -e "devtools::install_github('WEHI-SODA-Hub/spatialVis')"
 
 CMD /bin/bash

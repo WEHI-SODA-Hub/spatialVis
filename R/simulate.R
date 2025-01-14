@@ -28,7 +28,7 @@ simulate_expression <- function(n, mean_log = 0, sd_log = 1) {
 }
 
 #' @title Simulate cells
-#' @description Simulate cells for testing imcvis functions
+#' @description Simulate cells for testing package functions
 #' @param markers A character vector of marker names
 #' @param n_cells The number of cells to simulate
 #' @param width The width of the image

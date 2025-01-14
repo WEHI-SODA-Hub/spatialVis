@@ -27,5 +27,5 @@ simulate_cells(
 A data frame with simulated cell data
 }
 \description{
-Simulate cells for testing imcvis functions
+Simulate cells for testing package functions
 }
