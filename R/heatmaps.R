@@ -71,7 +71,7 @@ create_bar_plot <- function(mean_intensities, celltypes, parenttypes,
                    panel.background = ggplot2::element_blank(),
                    panel.spacing = ggplot2::unit(0.001, "cm")) +
     ggplot2::coord_flip(ylim = c(0, max(mean_intensities$count))) +
-    ggplot2::facet_grid(rows = vars(!!as.name(parent_colname)),
+    ggplot2::facet_grid(rows = dplyr::vars(!!as.name(parent_colname)),
                         scales = "free_y", space = "free")
 
   return(bar_plot)
