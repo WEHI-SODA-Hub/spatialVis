@@ -1,5 +1,7 @@
 FROM rocker/tidyverse:4.4.1
 
+ENV XDG_CACHE_HOME=/tmp/.cache
+
 RUN apt-get update && \
     apt-get install -y libmagick++-dev && \
     apt-get install -y curl && \
