@@ -42,8 +42,7 @@ Loading your data:
 ```R
 library(spatialVis)
 
-hierarchy_df <- load_hierarchies("data/hierarchy.yaml")
-spe <- make_spe_from_expr_data("data/simulated.csv", hierarchy_df)
+spe <- make_spe_from_expr_data("data/simulated.csv", "data/hierarchy.yaml")
 ```
 
 The `spe` object can now be used to generate plots and analyses.

@@ -6,7 +6,7 @@
 \usage{
 make_spe_from_expr_data(
   expression_file,
-  hierarchy_df,
+  hierarchy_file,
   metadata_cols = c("Image", "In Tumour"),
   marker_col = "Class",
   centroid_x_col = "Centroid X",
@@ -16,7 +16,7 @@ make_spe_from_expr_data(
 \arguments{
 \item{expression_file}{Path to the expression data file}
 
-\item{hierarchy_df}{Data frame containing the hierarchy levels}
+\item{hierarchy_file}{Path to the YAML file containing cell hierarchies}
 
 \item{metadata_cols}{Character vector of metadata columns (default: c("Image"
 , "Class", "In Tumour"))}

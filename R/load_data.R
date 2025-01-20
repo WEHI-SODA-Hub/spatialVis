@@ -68,7 +68,7 @@ make_hierarchies_table <- function(hierarchy_list) {
 #' @description Takes an expression file and a data frame containing the
 #' hierarchy levels and constructs a SpatialExperiment object.
 #' @param expression_file Path to the expression data file
-#' @param hierarchy_df Data frame containing the hierarchy levels
+#' @param hierarchy_file Path to the YAML file containing cell hierarchies
 #' @param metadata_cols Character vector of metadata columns (default: c("Image"
 #' , "Class", "In Tumour"))
 #' @param centroid_x_col Column name for the x-coordinate of the cell centroid
@@ -78,12 +78,13 @@ make_hierarchies_table <- function(hierarchy_list) {
 #' @return A SpatialExperiment object
 #' @export
 #' @importFrom dplyr %>%
-make_spe_from_expr_data <- function(expression_file, hierarchy_df,
+make_spe_from_expr_data <- function(expression_file, hierarchy_file,
                                     metadata_cols = c("Image",
                                                       "In Tumour"),
                                     marker_col = "Class",
                                     centroid_x_col = "Centroid X",
                                     centroid_y_col = "Centroid Y") {
+  hierarchy_df <- load_hierarchies(hierarchy_file)
   exp_data <- data.table::fread(expression_file, sep = ",", check.names = FALSE)
 
   # extract expression columns and construct matrix with markers for rows
@@ -118,6 +119,8 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_df,
     dplyr::left_join(hierarchy_df, by = hierarchy_level)
   cell_coords <- exp_data %>%
     dplyr::select(dplyr::all_of(c(centroid_x_col, centroid_y_col))) %>%
+    dplyr::rename(`Cell.Y.Position` = !!as.name(centroid_y_col), # nolint: object_usage_linter, line_length_linter.
+                  `Cell.X.Position` = !!as.name(centroid_x_col)) %>% # nolint: object_usage_linter, line_length_linter.
     as.matrix()
 
   # row_data contains the marker names

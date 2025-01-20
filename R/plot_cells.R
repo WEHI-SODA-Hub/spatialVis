@@ -14,8 +14,8 @@ library(dplyr)
 #' @export
 #' @importFrom dplyr %>%
 plot_celltypes <- function(spe, celltype_colname = "HierarchyLevel4",
-                           centroid_x_col = "Centroid X",
-                           centroid_y_col = "Centroid Y",
+                           centroid_x_col = "Cell.X.Position",
+                           centroid_y_col = "Cell.Y.Position",
                            pointsize = 0.5) {
   stopifnot(celltype_colname %in% colnames(SingleCellExperiment::colData(spe)))
 
