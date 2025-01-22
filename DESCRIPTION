@@ -20,4 +20,5 @@ Imports:
  gridExtra,
  Rcpp,
  uwot,
- umap
+ umap,
+ RANN
