@@ -71,5 +71,12 @@ Spatial plot of cells:
 plot_celltypes(spe)
 ```
 
+Create spatial clusters and plot celltype proportions by cluster:
+
+```R
+spe <- create_spatial_clusters(spe)
+plot_cluster_cell_props(spe)
+```
+
 All of these functions have configurable parameters. Check the function help for
 more info.

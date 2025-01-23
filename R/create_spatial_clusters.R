@@ -26,7 +26,6 @@ create_spatial_clusters <- function(spe,
                                     k_closest = 10,
                                     max_dist = 50,
                                     number_clusters_kmeans = 10,
-                                    keep_proportions = TRUE,
                                     seed = 123) {
 
   # Get the spatial coordinates and grep out whole column names
@@ -51,12 +50,9 @@ create_spatial_clusters <- function(spe,
   set.seed(seed)
   cluster_objs <- kmeans(proportions_df %>% select(-!!sym(image_col)),
                          number_clusters_kmeans)
-  cluster <- cluster_objs$cluster
+  spe$cluster <- cluster_objs$cluster
 
-  if (keep_proportions) {
-    cluster <- cbind(proportions_df, cluster)
-  }
-  return(cluster)
+  return(spe)
 }
 
 # Find proportions of nearest neighbours
