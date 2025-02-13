@@ -14,12 +14,18 @@ library(dplyr)
 #' @export
 #' @importFrom dplyr %>%
 plot_cell_props <- function(spe,
+                            parenttypes = NULL,
+                            parent_colname = "HierarchyLevel1",
                             celltypes = NULL,
                             celltype_colname = "HierarchyLevel4",
                             stack = TRUE) {
+  stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
   stopifnot(celltype_colname %in% colnames(SingleCellExperiment::colData(spe)))
 
-  # get all cell types if not provided
+  # get all parent and cell types if not provided
+  if (is.null(parenttypes)) {
+    parenttypes <- unique(SingleCellExperiment::colData(spe)[[parent_colname]])
+  }
   if (is.null(celltypes)) {
     celltypes <- unique(SingleCellExperiment::colData(spe)[[celltype_colname]])
   }
@@ -27,6 +33,7 @@ plot_cell_props <- function(spe,
   membership_props <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
     dplyr::filter(!!as.name(celltype_colname) %in% celltypes) %>%
+    dplyr::filter(!!as.name(parent_colname) %in% parenttypes) %>%
     dplyr::group_by_at(c("sample_id", celltype_colname)) %>%
     dplyr::summarise(count = n()) %>%
     dplyr::group_modify(~{
@@ -45,7 +52,7 @@ plot_cell_props <- function(spe,
                                               fill = !!as.name(celltype_colname))) + # nolint: line_length_linter.
       ggplot2::geom_bar(position = "stack", stat = "identity") +
       ggplot2::scale_fill_manual(values = pal) +
-      ggplot2::geom_text(ggplot2::aes(label = proportion), size = 3,
+      ggplot2::geom_text(ggplot2::aes(label = round(proportion, 2)), size = 3,
                          position = ggplot2::position_stack(vjust = 0.5)) +
       ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1),
