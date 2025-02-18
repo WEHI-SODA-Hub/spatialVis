@@ -38,7 +38,8 @@ simulate_expression <- function(n, mean_log = 0, sd_log = 1) {
 #' @export
 #' @importFrom dplyr %>%
 simulate_cells <- function(markers = example_markers, n_cells = 5000,
-                           width = 2000, height = 2000, seed = 123) {
+                           width = 2000, height = 2000, seed = 123,
+                           plot_image = FALSE) {
   set.seed(seed)
 
   # use spaSim to simulate background cells
@@ -55,7 +56,7 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
   mix_bg <- spaSim::simulate_mixing(bg_sample = bg,
                                     idents = idents,
                                     props = c(0.2, 0.3, 0.5),
-                                    plot_image = TRUE)
+                                    plot_image = FALSE)
 
   cluster1 <- list(name_of_cluster_cell = "Treg cells", size = 500,
                    shape = "Oval", centre_loc = data.frame(x = 600, y = 600),
@@ -70,7 +71,8 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
   clusters <- spaSim::simulate_clusters(bg_sample = mix_bg,
                                         n_clusters = 2,
                                         bg_type = "Other",
-                                        cluster_properties = cluster_properties)
+                                        cluster_properties = cluster_properties,
+                                        plot_image = plot_image)
 
   # create empty expression values
   expr <- matrix(nrow = n_cells, ncol = length(markers), 0)

@@ -6,6 +6,8 @@
 \usage{
 plot_cell_props(
   spe,
+  parenttypes = NULL,
+  parent_colname = "HierarchyLevel1",
   celltypes = NULL,
   celltype_colname = "HierarchyLevel4",
   stack = TRUE

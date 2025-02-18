@@ -42,7 +42,16 @@ Loading your data:
 ```R
 library(spatialVis)
 
-spe <- make_spe_from_expr_data("data/simulated.csv", "data/hierarchy.yaml")
+spe <- make_spe_from_expr_data("expression.csv", "hierarchy.yaml")
+```
+
+See `raw-data/simulated.csv` for an example of the expression data format, and
+`inst/extdata/hierarchy.yaml` for an example of a hierarchy file.
+
+You can test the package by loading a the simulated data set:
+
+```R
+data(spe)
 ```
 
 The `spe` object can now be used to generate plots and analyses.
