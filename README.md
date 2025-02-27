@@ -77,10 +77,16 @@ plot_umap(spe)
 Spatial plot of cells:
 
 ```R
-plot_celltypes(spe)
+plot_cell_types(spe)
 ```
 
-Create spatial clusters and plot celltype proportions by cluster:
+Plot proportion of cells:
+
+```R
+plot_cell_props(spe)
+```
+
+Create spatial clusters and plot cell_type proportions by cluster:
 
 ```R
 spe <- create_spatial_clusters(spe)

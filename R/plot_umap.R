@@ -6,39 +6,39 @@ library(dplyr)
 #' @param spe SingleCellExperiment object containing marker intensities
 #' @param markers Character vector of markers to plot and the order in which
 #' they should be plotted
-#' @param celltypes Character vector of cell types to plot and the order in
+#' @param cell_types Character vector of cell types to plot and the order in
 #' which they should be plotted
-#' @param celltype_colname Column name in colData containing cell type
+#' @param cell_type_colname Column name in colData containing cell type
 #' information (default: "HierarchyLevel4")
 #' @param parent_colname Column name in colData containing parent cell type
 #' information (default: "HierarchyLevel2")
 #' @return A ggplot2 object
 #' @export
 #' @importFrom dplyr %>%
-plot_umap <- function(spe, markers = NULL, celltypes = NULL,
-                      celltype_colname = "HierarchyLevel4",
+plot_umap <- function(spe, markers = NULL, cell_types = NULL,
+                      cell_type_colname = "HierarchyLevel4",
                       parent_colname = "HierarchyLevel2") {
 
-  stopifnot(celltype_colname %in% colnames(SingleCellExperiment::colData(spe)))
+  stopifnot(cell_type_colname %in% colnames(SingleCellExperiment::colData(spe)))
 
-  if (is.null(celltypes)) {
-    celltypes <- unique(SingleCellExperiment::colData(spe)[[celltype_colname]])
+  if (is.null(cell_types)) {
+    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]])
   }
   if (is.null(markers)) {
     markers <- rownames(spe)
   }
 
-  celltype_intensities <- SingleCellExperiment::colData(spe) %>%
+  cell_type_intensities <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
-    dplyr::select(dplyr::all_of(c(celltype_colname, parent_colname))) %>%
+    dplyr::select(dplyr::all_of(c(cell_type_colname, parent_colname))) %>%
     cbind(t(SingleCellExperiment::counts(spe))) %>%
-    dplyr::filter(!!as.name(celltype_colname) %in% celltypes) %>%
+    dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
     dplyr::mutate(dplyr::across(dplyr::where(is.numeric),
                                 ~tidyr::replace_na(., 0)))
 
   # run umap
   system.time({
-    cell_umap <- celltype_intensities %>%
+    cell_umap <- cell_type_intensities %>%
       dplyr::select(-dplyr::where(is.character)) %>%
       umap::umap(.) # nolint: object_usage_linter.
   })
@@ -49,8 +49,8 @@ plot_umap <- function(spe, markers = NULL, celltypes = NULL,
   # Convert to data frame
   umap_df <- as.data.frame(umap_coordinates)
 
-  umap_df$cell_type <- factor(celltype_intensities[[celltype_colname]],
-                              levels = celltypes)
+  umap_df$cell_type <- factor(cell_type_intensities[[cell_type_colname]],
+                              levels = cell_types)
 
   p <- ggplot2::ggplot(as.data.frame(umap_df),
                        ggplot2::aes(x = V1, y = V2, color = cell_type)) + # nolint: object_usage_linter, line_length_linter.

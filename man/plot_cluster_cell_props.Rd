@@ -6,18 +6,18 @@
 \usage{
 plot_cluster_cell_props(
   spe,
-  celltypes = NULL,
-  celltype_colname = "HierarchyLevel4",
+  cell_types = NULL,
+  cell_type_colname = "HierarchyLevel4",
   plot_type = "bar"
 )
 }
 \arguments{
 \item{spe}{SingleCellExperiment object containing cluster information}
 
-\item{celltypes}{Character vector of cell types to plot and the order in
+\item{cell_types}{Character vector of cell types to plot and the order in
 which they should be plotted (default: plot all cell types)}
 
-\item{celltype_colname}{Column name in colData containing cell type
+\item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
 
 \item{plot_type}{Type of plot to generate ("bar" (default) or "heatmap")}

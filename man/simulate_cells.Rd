@@ -9,7 +9,8 @@ simulate_cells(
   n_cells = 5000,
   width = 2000,
   height = 2000,
-  seed = 123
+  seed = 123,
+  plot_image = FALSE
 )
 }
 \arguments{

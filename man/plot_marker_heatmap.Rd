@@ -7,9 +7,9 @@
 plot_marker_heatmap(
   spe,
   markers = NULL,
-  celltypes = NULL,
-  parenttypes = NULL,
-  celltype_colname = "HierarchyLevel4",
+  cell_types = NULL,
+  parent_types = NULL,
+  cell_type_colname = "HierarchyLevel4",
   parent_colname = "HierarchyLevel2",
   value = "expression"
 )
@@ -21,13 +21,13 @@ and marker positivity}
 \item{markers}{Character vector of markers to plot and the order in which
 they should be plotted}
 
-\item{celltypes}{Character vector of cell types to plot and the order in
+\item{cell_types}{Character vector of cell types to plot and the order in
 which they should be plotted}
 
-\item{parenttypes}{Character vector of parent cell types to plot and the
+\item{parent_types}{Character vector of parent cell types to plot and the
 order in which they should be plotted}
 
-\item{celltype_colname}{Column name in colData containing cell type
+\item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
 
 \item{parent_colname}{Column name in colData containing parent cell type

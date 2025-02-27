@@ -4,9 +4,9 @@ library(dplyr)
 #'
 #' @description Plot the proportions of cell types in each sample
 #' @param spe SingleCellExperiment object containing cell type information
-#' @param celltypes Character vector of cell types to plot and the order in
+#' @param cell_types Character vector of cell types to plot and the order in
 #' which they should be plotted (default: plot all cell types)
-#' @param celltype_colname Column name in colData containing cell type
+#' @param cell_type_colname Column name in colData containing cell type
 #' information (default: "HierarchyLevel4")
 #' @param stack If set to TRUE will create a stacked proportion plot per sample,
 #' otherwise will create a standard bar plot per sample (default: TRUE).
@@ -14,34 +14,34 @@ library(dplyr)
 #' @export
 #' @importFrom dplyr %>%
 plot_cell_props <- function(spe,
-                            parenttypes = NULL,
+                            parent_types = NULL,
                             parent_colname = "HierarchyLevel1",
-                            celltypes = NULL,
-                            celltype_colname = "HierarchyLevel4",
+                            cell_types = NULL,
+                            cell_type_colname = "HierarchyLevel4",
                             stack = TRUE) {
   stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
-  stopifnot(celltype_colname %in% colnames(SingleCellExperiment::colData(spe)))
+  stopifnot(cell_type_colname %in% colnames(SingleCellExperiment::colData(spe)))
 
   # get all parent and cell types if not provided
-  if (is.null(parenttypes)) {
-    parenttypes <- unique(SingleCellExperiment::colData(spe)[[parent_colname]])
+  if (is.null(parent_types)) {
+    parent_types <- unique(SingleCellExperiment::colData(spe)[[parent_colname]])
   }
-  if (is.null(celltypes)) {
-    celltypes <- unique(SingleCellExperiment::colData(spe)[[celltype_colname]])
+  if (is.null(cell_types)) {
+    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]]) # nolint: line_length_linter.
   }
 
   membership_props <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
-    dplyr::filter(!!as.name(celltype_colname) %in% celltypes) %>%
-    dplyr::filter(!!as.name(parent_colname) %in% parenttypes) %>%
-    dplyr::group_by_at(c("sample_id", celltype_colname)) %>%
+    dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
+    dplyr::filter(!!as.name(parent_colname) %in% parent_types) %>%
+    dplyr::group_by_at(c("sample_id", cell_type_colname)) %>%
     dplyr::summarise(count = n()) %>%
     dplyr::group_modify(~{
       proportion <- .x$count / sum(.x$count)
       cbind(.x, proportion)
     })
 
-  nlevels <- length(celltypes)
+  nlevels <- length(cell_types)
   pal <- colorRampPalette(RColorBrewer::brewer.pal(n = 11,
                                                    name = "Spectral"))(nlevels)
 
@@ -49,7 +49,7 @@ plot_cell_props <- function(spe,
     prop_plot <- ggplot2::ggplot(data = membership_props,
                                  ggplot2::aes(x = proportion, # nolint: object_usage_linter, line_length_linter.
                                               y = sample_id, # nolint: object_usage_linter, line_length_linter.
-                                              fill = !!as.name(celltype_colname))) + # nolint: line_length_linter.
+                                              fill = !!as.name(cell_type_colname))) + # nolint: line_length_linter.
       ggplot2::geom_bar(position = "stack", stat = "identity") +
       ggplot2::scale_fill_manual(values = pal) +
       ggplot2::geom_text(ggplot2::aes(label = round(proportion, 2)), size = 3,
@@ -61,7 +61,7 @@ plot_cell_props <- function(spe,
                      panel.background = ggplot2::element_blank())
   } else {
     prop_plot <- ggplot2::ggplot(data = membership_props,
-                                 ggplot2::aes(x = !!as.name(celltype_colname), # nolint: line_length_linter.
+                                 ggplot2::aes(x = !!as.name(cell_type_colname), # nolint: line_length_linter.
                                               y = proportion)) + # nolint: object_usage_linter, line_length_linter.
       ggplot2::geom_bar(stat = "identity") +
       ggplot2::facet_wrap(~sample_id) +

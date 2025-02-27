@@ -48,7 +48,7 @@ create_spatial_clusters <- function(spe,
                                         max_dist)
 
   set.seed(seed)
-  cluster_objs <- kmeans(proportions_df %>% select(-!!sym(image_col)),
+  cluster_objs <- kmeans(proportions_df %>% dplyr::select(-!!sym(image_col)),
                          number_clusters_kmeans)
   spe$cluster <- cluster_objs$cluster
 

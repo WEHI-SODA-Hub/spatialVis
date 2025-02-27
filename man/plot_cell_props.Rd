@@ -6,20 +6,20 @@
 \usage{
 plot_cell_props(
   spe,
-  parenttypes = NULL,
+  parent_types = NULL,
   parent_colname = "HierarchyLevel1",
-  celltypes = NULL,
-  celltype_colname = "HierarchyLevel4",
+  cell_types = NULL,
+  cell_type_colname = "HierarchyLevel4",
   stack = TRUE
 )
 }
 \arguments{
 \item{spe}{SingleCellExperiment object containing cell type information}
 
-\item{celltypes}{Character vector of cell types to plot and the order in
+\item{cell_types}{Character vector of cell types to plot and the order in
 which they should be plotted (default: plot all cell types)}
 
-\item{celltype_colname}{Column name in colData containing cell type
+\item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
 
 \item{stack}{If set to TRUE will create a stacked proportion plot per sample,

@@ -7,8 +7,8 @@
 plot_umap(
   spe,
   markers = NULL,
-  celltypes = NULL,
-  celltype_colname = "HierarchyLevel4",
+  cell_types = NULL,
+  cell_type_colname = "HierarchyLevel4",
   parent_colname = "HierarchyLevel2"
 )
 }
@@ -18,10 +18,10 @@ plot_umap(
 \item{markers}{Character vector of markers to plot and the order in which
 they should be plotted}
 
-\item{celltypes}{Character vector of cell types to plot and the order in
+\item{cell_types}{Character vector of cell types to plot and the order in
 which they should be plotted}
 
-\item{celltype_colname}{Column name in colData containing cell type
+\item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
 
 \item{parent_colname}{Column name in colData containing parent cell type
