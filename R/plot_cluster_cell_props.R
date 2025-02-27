@@ -22,13 +22,13 @@ plot_cluster_cell_props <- function(spe,
 
   # get all cell types if not provided
   if (is.null(cell_types)) {
-    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]])
+    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]]) # nolint: line_length_linter.
   }
   # summarise the cluster memberships
   membership_props <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
     dplyr::group_by_at(c("cluster", cell_type_colname)) %>%
-    dplyr::summarise(count = n()) %>%
+    dplyr::summarise(count = dplyr::n()) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(cluster) # nolint: object_usage_linter.
 

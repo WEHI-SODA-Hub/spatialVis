@@ -35,7 +35,7 @@ plot_cell_props <- function(spe,
     dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
     dplyr::filter(!!as.name(parent_colname) %in% parent_types) %>%
     dplyr::group_by_at(c("sample_id", cell_type_colname)) %>%
-    dplyr::summarise(count = n()) %>%
+    dplyr::summarise(count = dplyr::n()) %>%
     dplyr::group_modify(~{
       proportion <- .x$count / sum(.x$count)
       cbind(.x, proportion)
