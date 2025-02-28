@@ -3,30 +3,6 @@ library(dplyr)
 # List of example markers
 example_markers <- c("CD3", "CD8", "CD4", "CD20", "CD68",
                      "PD1", "PDL1", "Ki67", "FoxP3", "Cytokeratin")
-
-# Return one positive marker, all others are negative in format:
-# CD3-: CD8-: CD4+ ... etc.
-get_random_positive_marker <- function(markers) {
-  positive_marker <- sample(markers, 1)
-  result <- paste0(
-    sapply(markers, function(marker) {
-      if (marker == positive_marker) {
-        paste0(marker, "+:")
-      } else {
-        paste0(marker, "-:")
-      }
-    }),
-    collapse = " "
-  )
-  result <- gsub(":$", "", result)
-  return(result)
-}
-
-# Function to simulate marker expression with a log-normal distribution
-simulate_expression <- function(n, mean_log = 0, sd_log = 1) {
-  rlnorm(n, meanlog = mean_log, sdlog = sd_log)
-}
-
 #' @title Simulate cells
 #' @description Simulate cells for testing package functions
 #' @param markers A character vector of marker names
@@ -105,4 +81,27 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
     dplyr::rename_with(~ paste0(.x, ": Cell: Mean"), dplyr::all_of(markers))
 
   return(marker_data)
+}
+
+# Return one positive marker, all others are negative in format:
+# CD3-: CD8-: CD4+ ... etc.
+get_random_positive_marker <- function(markers) {
+  positive_marker <- sample(markers, 1)
+  result <- paste0(
+    sapply(markers, function(marker) {
+      if (marker == positive_marker) {
+        paste0(marker, "+:")
+      } else {
+        paste0(marker, "-:")
+      }
+    }),
+    collapse = " "
+  )
+  result <- gsub(":$", "", result)
+  return(result)
+}
+
+# Function to simulate marker expression with a log-normal distribution
+simulate_expression <- function(n, mean_log = 0, sd_log = 1) {
+  rlnorm(n, meanlog = mean_log, sdlog = sd_log)
 }
