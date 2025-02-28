@@ -42,7 +42,8 @@ plot_cluster_cell_props <- function(spe,
 
   # add the levels
   cluster_levels <- factor(cluster_membership_props %>%
-                             pull(cell_type_colname), levels = cell_types)
+                             dplyr::pull(cell_type_colname),
+                           levels = cell_types)
   cluster_membership_props[, cell_type_colname] <- cluster_levels
 
   nlevels <- levels(cluster_levels) %>% length()
