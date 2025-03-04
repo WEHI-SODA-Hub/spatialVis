@@ -6,7 +6,9 @@ library(dplyr)
 #' @param spe SingleCellExperiment object containing marker intensities
 #' and marker positivity
 #' @param markers Character vector of markers to plot and the order in which
-#' they should be plotted
+#' they should be plotted (NOTE: for expression, check that the markers are
+#' present in the counts, and for proportions, check that they are present in
+#' the colData)
 #' @param cell_types Character vector of cell types to plot and the order in
 #' which they should be plotted
 #' @param parent_types Character vector of parent cell types to plot and the
@@ -32,13 +34,15 @@ plot_marker_heatmap <- function(spe, markers = NULL,
 
   # get all cell types if not provided
   if (is.null(cell_types)) {
-    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]])
+    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]]) # nolint: line_length_linter.
   }
   if (is.null(parent_types)) {
     parent_types <- unique(SingleCellExperiment::colData(spe)[[parent_colname]])
   }
   if (is.null(markers)) {
-    markers <- rownames(spe)
+    markers <- switch(value,
+                      expression = rownames(spe),
+                      proportion = get_marker_names(spe))
   }
 
   df <- switch(value,
@@ -79,7 +83,7 @@ plot_marker_heatmap <- function(spe, markers = NULL,
   p <- gridExtra::grid.arrange(aligned[[1]], aligned[[2]],
                                ncol = 2, nrow = 1, widths = c(4, 1))
 
-  return(p)
+  p
 }
 
 # Heatmap marker plot
@@ -122,7 +126,17 @@ create_raster_plot <- function(long_mean_intensities, markers, cell_types,
       panel.spacing = ggplot2::unit(0.001, "cm")
     )
 
-  return(raster_plot)
+  raster_plot
+}
+
+# best attempt to get positive/negative marker names from metadata
+get_marker_names <- function(spe) {
+  markers <- SingleCellExperiment::colData(spe) %>%
+    as.data.frame() %>%
+    dplyr::select(-starts_with("Hierarchy"),
+                  -sample_id, -Cell_ID, -In.Tumour, -Image) # nolint: object_usage_linter, line_length_linter.
+
+  colnames(markers)
 }
 
 # Bar plot of cell type counts
@@ -156,7 +170,7 @@ create_bar_plot <- function(mean_intensities, cell_types, parent_types,
     ggplot2::facet_grid(rows = dplyr::vars(!!as.name(parent_colname)),
                         scales = "free_y", space = "free")
 
-  return(bar_plot)
+  bar_plot
 }
 
 # calculate proportions of positive markers
@@ -179,7 +193,7 @@ get_proportions <- function(spe, markers, cell_types, cell_type_colname,
     dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
     as.data.frame()
 
-  return(proportions)
+  proportions
 }
 
 # calculate mean intensities of markers
@@ -200,5 +214,5 @@ get_mean_intensities <- function(spe, cell_types, cell_type_colname,
     dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
     as.data.frame()
 
-  return(mean_intensities)
+  mean_intensities
 }

@@ -19,7 +19,9 @@ plot_marker_heatmap(
 and marker positivity}
 
 \item{markers}{Character vector of markers to plot and the order in which
-they should be plotted}
+they should be plotted (NOTE: for expression, check that the markers are
+present in the counts, and for proportions, check that they are present in
+the colData)}
 
 \item{cell_types}{Character vector of cell types to plot and the order in
 which they should be plotted}
