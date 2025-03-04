@@ -50,13 +50,15 @@ plot_marker_heatmap <- function(spe, markers = NULL,
                                                  cell_type_colname,
                                                  parent_colname),
                proportion = get_proportions(spe, markers, cell_types,
-                                            cell_type_colname, parent_colname))
+                                            cell_type_colname, parent_types,
+                                            parent_colname))
 
   stopifnot(nrow(df) > 0)
 
   # convert to long format and scale for plotting
   long_df <- df %>%
-    tidyr::pivot_longer(-c(parent_colname, cell_type_colname, "count"),
+    tidyr::pivot_longer(-dplyr::all_of(c(parent_colname,
+                                         cell_type_colname, "count")),
                         names_to = "marker",
                         values_to = value) %>%
     dplyr::group_by(marker) # nolint: object_usage_linter.
@@ -175,9 +177,11 @@ create_bar_plot <- function(mean_intensities, cell_types, parent_types,
 
 # calculate proportions of positive markers
 get_proportions <- function(spe, markers, cell_types, cell_type_colname,
-                            parent_colname) {
+                            parent_types, parent_colname) {
   proportions <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
+    dplyr::filter(!!as.name(parent_colname) %in% parent_types) %>% # nolint: object_usage_linter, line_length_linter.
+    dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
     dplyr::mutate(dplyr::across(dplyr::all_of(markers),
                                 ~ as.numeric(grepl("\\+", .)))) %>%
     dplyr::select(dplyr::all_of(c(cell_type_colname, parent_colname,
@@ -190,7 +194,6 @@ get_proportions <- function(spe, markers, cell_types, cell_type_colname,
     ) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(!!as.name(parent_colname), count)  %>%
-    dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
     as.data.frame()
 
   proportions
