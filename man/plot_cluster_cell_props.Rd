@@ -8,8 +8,9 @@ plot_cluster_cell_props(
   spe,
   cell_types = NULL,
   cell_type_colname = "HierarchyLevel4",
-  exclude_parent_types = NULL,
+  parent_types = NULL,
   parent_type_colname = "HierarchyLevel1",
+  exclude_parent_types = NULL,
   plot_type = "bar"
 )
 }
@@ -21,6 +22,9 @@ which they should be plotted (default: plot all cell types)}
 
 \item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
+
+\item{parent_types}{Character vector of parent cell types to include
+(default: all parent types)}
 
 \item{exclude_parent_types}{Character vector of parent cell types to exclude}
 

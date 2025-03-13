@@ -10,7 +10,7 @@ plot_marker_heatmap(
   cell_types = NULL,
   parent_types = NULL,
   cell_type_colname = "HierarchyLevel4",
-  parent_colname = "HierarchyLevel2",
+  parent_colname = "HierarchyLevel1",
   value = "expression"
 )
 }

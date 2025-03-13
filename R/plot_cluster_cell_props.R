@@ -8,6 +8,8 @@ library(dplyr)
 #' which they should be plotted (default: plot all cell types)
 #' @param cell_type_colname Column name in colData containing cell type
 #' information (default: "HierarchyLevel4")
+#' @param parent_types Character vector of parent cell types to include
+#' (default: all parent types)
 #' @param exclude_parent_types Character vector of parent cell types to exclude
 #' @param plot_type Type of plot to generate ("bar" (default) or "heatmap")
 #' @return ggplot object
@@ -16,20 +18,26 @@ library(dplyr)
 plot_cluster_cell_props <- function(spe,
                                     cell_types = NULL,
                                     cell_type_colname = "HierarchyLevel4",
-                                    exclude_parent_types = NULL,
+                                    parent_types = NULL,
                                     parent_type_colname = "HierarchyLevel1",
+                                    exclude_parent_types = NULL,
                                     plot_type = "bar") {
   stopifnot("cluster" %in% colnames(SingleCellExperiment::colData(spe)))
   stopifnot(cell_type_colname %in% colnames(SingleCellExperiment::colData(spe)))
   stopifnot(plot_type %in% c("bar", "heatmap"))
 
-  # get all cell types if not provided
+  # get all parent and cell types if not provided
+  if (is.null(parent_types)) {
+    parent_types <- unique(SingleCellExperiment::colData(spe)[[parent_type_colname]]) # nolint: line_length_linter.
+  }
   if (is.null(cell_types)) {
     cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]]) # nolint: line_length_linter.
   }
+
   # summarise the cluster memberships
   membership_props <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
+    dplyr::filter(!!as.name(parent_type_colname) %in% parent_types) %>%
     dplyr::filter(!(!!as.name(parent_type_colname) %in%
                       exclude_parent_types)) %>%
     dplyr::group_by_at(c("cluster", cell_type_colname)) %>%

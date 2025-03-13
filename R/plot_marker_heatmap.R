@@ -26,7 +26,7 @@ plot_marker_heatmap <- function(spe, markers = NULL,
                                 cell_types = NULL,
                                 parent_types = NULL,
                                 cell_type_colname = "HierarchyLevel4",
-                                parent_colname = "HierarchyLevel2",
+                                parent_colname = "HierarchyLevel1",
                                 value = "expression") {
   stopifnot(value %in% c("expression", "proportion"))
   stopifnot(cell_type_colname %in% colnames(SingleCellExperiment::colData(spe)))
@@ -66,7 +66,8 @@ plot_marker_heatmap <- function(spe, markers = NULL,
   if (value == "expression") {
     long_df <- long_df %>%
       dplyr::mutate(standardised_mean = scale(expression)[, 1]) %>%
-      dplyr::filter(marker %in% markers) # nolint: object_usage_linter.
+      dplyr::filter(marker %in% markers) %>% # nolint: object_usage_linter.
+      dplyr::filter(!!as.name(parent_colname) %in% parent_types)
     value <- "standardised_mean"
   } else {
     long_df <- long_df %>%
