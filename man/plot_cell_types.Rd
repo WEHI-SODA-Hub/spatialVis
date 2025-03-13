@@ -7,6 +7,8 @@
 plot_cell_types(
   spe,
   cell_type_colname = "HierarchyLevel4",
+  parent_types = NULL,
+  parent_type_colname = "HierarchyLevel1",
   centroid_x_col = "Cell.X.Position",
   centroid_y_col = "Cell.Y.Position",
   pointsize = 0.5
@@ -17,6 +19,12 @@ plot_cell_types(
 
 \item{cell_type_colname}{Column name in colData of spe that contains cell
 types (default: "HierarchyLevel4")}
+
+\item{parent_types}{Character vector of parent cell types to include
+(default: all parent types)}
+
+\item{parent_type_colname}{Column name in colData of spe that contains parent
+cell types (default: "HierarchyLevel1")}
 
 \item{centroid_x_col}{Column name in spatial coordinates that contains x
 coordinates (default: "Centroid X")}
