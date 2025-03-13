@@ -9,7 +9,8 @@ plot_umap(
   markers = NULL,
   cell_types = NULL,
   cell_type_colname = "HierarchyLevel4",
-  parent_colname = "HierarchyLevel2"
+  parent_types = NULL,
+  parent_colname = "HierarchyLevel1"
 )
 }
 \arguments{
@@ -24,8 +25,11 @@ which they should be plotted}
 \item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
 
+\item{parent_types}{Character vector of parent cell types to include
+(default: all parent types)}
+
 \item{parent_colname}{Column name in colData containing parent cell type
-information (default: "HierarchyLevel2")}
+information (default: "HierarchyLevel1")}
 }
 \value{
 A ggplot2 object

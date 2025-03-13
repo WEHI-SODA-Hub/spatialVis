@@ -10,19 +10,26 @@ library(dplyr)
 #' which they should be plotted
 #' @param cell_type_colname Column name in colData containing cell type
 #' information (default: "HierarchyLevel4")
+#' @param parent_types Character vector of parent cell types to include
+#' (default: all parent types)
 #' @param parent_colname Column name in colData containing parent cell type
-#' information (default: "HierarchyLevel2")
+#' information (default: "HierarchyLevel1")
 #' @return A ggplot2 object
 #' @export
 #' @importFrom dplyr %>%
 plot_umap <- function(spe, markers = NULL, cell_types = NULL,
                       cell_type_colname = "HierarchyLevel4",
-                      parent_colname = "HierarchyLevel2") {
+                      parent_types = NULL,
+                      parent_colname = "HierarchyLevel1") {
 
   stopifnot(cell_type_colname %in% colnames(SingleCellExperiment::colData(spe)))
+  stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
 
   if (is.null(cell_types)) {
-    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]])
+    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]]) # nolint: line_length_linter.
+  }
+  if (is.null(parent_types)) {
+    parent_types <- unique(SingleCellExperiment::colData(spe)[[parent_colname]]) # nolint: line_length_linter.
   }
   if (is.null(markers)) {
     markers <- rownames(spe)
@@ -33,6 +40,7 @@ plot_umap <- function(spe, markers = NULL, cell_types = NULL,
     dplyr::select(dplyr::all_of(c(cell_type_colname, parent_colname))) %>%
     cbind(t(SingleCellExperiment::counts(spe))) %>%
     dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
+    dplyr::filter(!!as.name(parent_colname) %in% parent_types) %>%
     dplyr::mutate(dplyr::across(dplyr::where(is.numeric),
                                 ~tidyr::replace_na(., 0)))
 
