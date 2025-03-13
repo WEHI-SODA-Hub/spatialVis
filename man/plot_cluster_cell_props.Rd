@@ -8,6 +8,8 @@ plot_cluster_cell_props(
   spe,
   cell_types = NULL,
   cell_type_colname = "HierarchyLevel4",
+  exclude_parent_types = NULL,
+  parent_type_colname = "HierarchyLevel1",
   plot_type = "bar"
 )
 }
@@ -19,6 +21,8 @@ which they should be plotted (default: plot all cell types)}
 
 \item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
+
+\item{exclude_parent_types}{Character vector of parent cell types to exclude}
 
 \item{plot_type}{Type of plot to generate ("bar" (default) or "heatmap")}
 }
