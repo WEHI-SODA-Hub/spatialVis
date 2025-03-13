@@ -66,7 +66,7 @@ plot_cluster_cell_props <- function(spe,
   # plot the results
   if (plot_type == "heatmap") {
     prop_plot <- ggplot2::ggplot(cluster_membership_props,
-                                 ggplot2::aes(x = HierarchyLevel4, # nolint: object_usage_linter, line_length_linter.
+                                 ggplot2::aes(x = !!as.name(cell_type_colname), # nolint: object_usage_linter, line_length_linter.
                                               y = factor(cluster))) + # nolint: object_usage_linter, line_length_linter.
       ggplot2::geom_raster() +
       ggplot2::geom_tile(ggplot2::aes(fill = proportion), colour = "black", # nolint: object_usage_linter, line_length_linter.
