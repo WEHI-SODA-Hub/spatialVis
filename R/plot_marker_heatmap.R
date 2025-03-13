@@ -135,7 +135,8 @@ create_raster_plot <- function(long_mean_intensities, markers, cell_types,
 get_marker_names <- function(spe) {
   markers <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
-    dplyr::select(-starts_with("Hierarchy"),
+    dplyr::select(-dplyr::starts_with("Hierarchy"),
+                  -dplyr::starts_with("cluster"),
                   -sample_id, -Cell_ID, -In.Tumour, -Image) # nolint: object_usage_linter, line_length_linter.
 
   colnames(markers)
