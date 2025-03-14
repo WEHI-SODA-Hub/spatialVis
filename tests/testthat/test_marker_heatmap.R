@@ -4,4 +4,5 @@ test_that("plot_marker_heatmap", {
 
   # test that the output is a gtable object
   expect_is(plot_marker_heatmap(spe), "gtable")
+  expect_is(plot_marker_heatmap(spe, value = "proportion"), "gtable")
 })

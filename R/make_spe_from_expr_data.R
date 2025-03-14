@@ -54,7 +54,9 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_file,
     dplyr::mutate(dplyr::across(dplyr::any_of(marker_cols[-1]),
                                 ~ stringr::str_sub(., -1))) %>%
     dplyr::mutate(Cell_ID = paste0("Cell", seq(1, nrow(.)))) %>% # nolint: object_usage_linter, line_length_linter.
-    dplyr::left_join(hierarchy_df, by = hierarchy_level)
+    dplyr::left_join(hierarchy_df, by = hierarchy_level) %>%
+    dplyr::mutate(dplyr::across(dplyr::starts_with("HierarchyLevel"),
+                                ~ stringr::str_replace_all(., " ", "_")))
   cell_coords <- exp_data %>%
     dplyr::select(dplyr::all_of(c(centroid_x_col, centroid_y_col))) %>%
     dplyr::rename(`Cell.Y.Position` = !!as.name(centroid_y_col), # nolint: object_usage_linter, line_length_linter.
