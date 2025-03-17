@@ -67,7 +67,7 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_file,
   row_data <- data.frame(rownames(exp_matrix))
 
   # col_data contains the metadata
-  col_data <- data.frame(cell_metadata)
+  col_data <- data.frame(cell_metadata, row.names = cell_metadata$Cell_ID)
 
   spe <- SpatialExperiment::SpatialExperiment(
     assays = list(counts = exp_matrix),
