@@ -77,7 +77,7 @@ plot_umap(spe)
 Spatial plot of cells:
 
 ```R
-plot_cell_types(spe)
+plot_cells_spatially(spe)
 ```
 
 Plot proportion of cells:
