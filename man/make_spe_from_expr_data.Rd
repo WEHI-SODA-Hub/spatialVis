@@ -10,7 +10,8 @@ make_spe_from_expr_data(
   metadata_cols = c("Image", "In Tumour"),
   marker_col = "Class",
   centroid_x_col = "Centroid X",
-  centroid_y_col = "Centroid Y"
+  centroid_y_col = "Centroid Y",
+  are_markers_split = FALSE
 )
 }
 \arguments{
@@ -21,11 +22,16 @@ make_spe_from_expr_data(
 \item{metadata_cols}{Character vector of metadata columns (default: c("Image"
 , "Class", "In Tumour"))}
 
+\item{marker_col}{Column name for the marker class (default: "Class")}
+
 \item{centroid_x_col}{Column name for the x-coordinate of the cell centroid
 (default: "Centroid X")}
 
 \item{centroid_y_col}{Column name for the y-coordinate of the cell centroid
 (default: "Centroid Y")}
+
+\item{are_markers_split}{Logical indicating if the marker column is already
+split into multiple columns (default: FALSE)}
 }
 \value{
 A SpatialExperiment object
