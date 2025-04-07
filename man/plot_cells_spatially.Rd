@@ -36,7 +36,7 @@ coordinates (default: "Centroid Y")}
 \item{pointsize}{Size of points in the plot (default: 0.5)}
 
 \item{colour_by}{Column name in colData of spe to colour points by (options:
-"cell_type" (default), "cluster" or "tumour")}
+"cell_type" (default), "cluster" or a column name in the metadata)}
 }
 \value{
 ggplot2 object
