@@ -60,11 +60,9 @@ plot_umap <- function(spe, markers = NULL, cell_types = NULL,
   umap_df$cell_type <- factor(cell_type_intensities[[cell_type_colname]],
                               levels = cell_types)
 
-  p <- ggplot2::ggplot(as.data.frame(umap_df),
-                       ggplot2::aes(x = V1, y = V2, color = cell_type)) + # nolint: object_usage_linter, line_length_linter.
+  ggplot2::ggplot(as.data.frame(umap_df),
+                  ggplot2::aes(x = V1, y = V2, color = cell_type)) + # nolint: object_usage_linter, line_length_linter.
     ggplot2::geom_point(size = 0.5, stroke = 0) +
     ggplot2::theme(panel.background = ggplot2::element_blank()) +
     ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 4))) # nolint: line_length_linter.
-
-  return(p)
 }

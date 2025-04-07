@@ -55,7 +55,7 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_file,
     marker_cols[1] <- hierarchy_level
 
     cell_metadata <- exp_data %>%
-      dplyr::rename(!!hierarchy_level := !!sym(marker_col)) %>% # nolint: object_usage_linter, line_length_linter.
+      dplyr::rename(!!hierarchy_level := !!rlang::sym(marker_col)) %>% # nolint: object_usage_linter, line_length_linter.
       dplyr::select(dplyr::all_of(c(marker_cols, metadata_cols)))
   } else {
     # split marker column into constituent parts
@@ -101,5 +101,5 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_file,
     colData = col_data,
     rowData = row_data
   )
-  return(spe)
+  spe
 }

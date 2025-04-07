@@ -80,7 +80,7 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
                   `Centroid X` = Cell.X.Position) %>% # nolint: object_usage_linter, line_length_linter.
     dplyr::rename_with(~ paste0(.x, ": Cell: Mean"), dplyr::all_of(markers))
 
-  return(marker_data)
+  marker_data
 }
 
 # Return one positive marker, all others are negative in format:
@@ -97,8 +97,7 @@ get_random_positive_marker <- function(markers) {
     }),
     collapse = " "
   )
-  result <- gsub(":$", "", result)
-  return(result)
+  gsub(":$", "", result)
 }
 
 # Function to simulate marker expression with a log-normal distribution

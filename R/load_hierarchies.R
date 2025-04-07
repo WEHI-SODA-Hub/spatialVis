@@ -14,7 +14,7 @@ load_hierarchies <- function(hierarchy_file) {
     get_hierarchy_list %>%
     make_hierarchies_table
 
-  return(hierarchy)
+  hierarchy
 }
 
 # recursive helper function to build list obtained list containing cell
@@ -33,7 +33,7 @@ get_hierarchy_list <- function(tree, path = NULL) {
     }
   }
 
-  return(result)
+  result
 }
 
 # helper function to create a data frame from a list of hierarchies
@@ -43,7 +43,7 @@ make_hierarchies_table <- function(hierarchy_list) {
     last_element <- hierarchy[length(hierarchy)]
     length(hierarchy) <- depth
     hierarchy[is.na(hierarchy)] <- last_element
-    return(hierarchy)
+    hierarchy
   }
 
   # find depth of hierarchy
@@ -60,5 +60,5 @@ make_hierarchies_table <- function(hierarchy_list) {
   # rename columns
   colnames(hierarchy_df) <- paste0("HierarchyLevel", seq(depth))
 
-  return(hierarchy_df)
+  hierarchy_df
 }
