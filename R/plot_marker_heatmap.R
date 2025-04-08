@@ -133,14 +133,20 @@ create_raster_plot <- function(long_mean_intensities, markers, cell_types,
 }
 
 # best attempt to get positive/negative marker names from metadata
+# infers marker columns from colData based on the presence of only
+# "+" and "-" in the column
 get_marker_names <- function(spe) {
-  markers <- SingleCellExperiment::colData(spe) %>%
-    as.data.frame() %>%
-    dplyr::select(-dplyr::starts_with("Hierarchy"),
-                  -dplyr::starts_with("cluster"),
-                  -sample_id, -Cell_ID, -In.Tumour, -Image) # nolint: object_usage_linter, line_length_linter.
+  stopifnot(
+    nrow(SingleCellExperiment::colData(spe)) > 0
+  )
 
-  colnames(markers)
+  SingleCellExperiment::colData(spe) %>%
+    as.data.frame() %>%
+    head(1) %>%
+    dplyr::summarise(dplyr::across(dplyr::everything(),
+                                   ~ all(grepl("^[+-]$", .)))) %>%
+    dplyr::select(dplyr::where(~ .)) %>%
+    colnames()
 }
 
 # Bar plot of cell type counts
