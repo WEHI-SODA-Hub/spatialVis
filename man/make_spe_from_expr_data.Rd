@@ -11,7 +11,8 @@ make_spe_from_expr_data(
   marker_col = "Class",
   centroid_x_col = "Centroid X",
   centroid_y_col = "Centroid Y",
-  are_markers_split = FALSE
+  are_markers_split = FALSE,
+  sample_id_col = NULL
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ make_spe_from_expr_data(
 
 \item{are_markers_split}{Logical indicating if the marker column is already
 split into multiple columns (default: FALSE)}
+
+\item{sample_id_col}{Column name for the sample ID (default: NULL)}
 }
 \value{
 A SpatialExperiment object

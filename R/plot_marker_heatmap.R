@@ -86,7 +86,7 @@ plot_marker_heatmap <- function(spe, markers = NULL,
   p <- gridExtra::grid.arrange(aligned[[1]], aligned[[2]],
                                ncol = 2, nrow = 1, widths = c(4, 1))
 
-  p
+  p |> capture.output() |> invisible()
 }
 
 # Heatmap marker plot
@@ -132,9 +132,8 @@ create_raster_plot <- function(long_mean_intensities, markers, cell_types,
   raster_plot
 }
 
-# best attempt to get positive/negative marker names from metadata
-# infers marker columns from colData based on the presence of only
-# "+" and "-" in the column
+# best attempt to get positive/negative marker names from metadata infers marker
+# columns from colData based on the presence of only + or - values
 get_marker_names <- function(spe) {
   stopifnot(
     nrow(SingleCellExperiment::colData(spe)) > 0
@@ -183,7 +182,7 @@ create_bar_plot <- function(mean_intensities, cell_types, parent_types,
   bar_plot
 }
 
-# calculate proportions of positive markers
+# for each marker, calculate the proportion of cells that are positive
 get_proportions <- function(spe, markers, cell_types, cell_type_colname,
                             parent_types, parent_colname) {
   proportions <- SingleCellExperiment::colData(spe) %>%

@@ -15,6 +15,7 @@ library(dplyr)
 #' (default: "Centroid Y")
 #' @param are_markers_split Logical indicating if the marker column is already
 #' split into multiple columns (default: FALSE)
+#' @param sample_id_col Column name for the sample ID (default: NULL)
 #' @return A SpatialExperiment object
 #' @export
 #' @importFrom dplyr %>%
@@ -23,9 +24,17 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_file,
                                     marker_col = "Class",
                                     centroid_x_col = "Centroid X",
                                     centroid_y_col = "Centroid Y",
-                                    are_markers_split = FALSE) {
+                                    are_markers_split = FALSE,
+                                    sample_id_col = NULL) {
   hierarchy_df <- spatialVis::load_hierarchies(hierarchy_file)
   exp_data <- data.table::fread(expression_file, sep = ",", check.names = FALSE)
+
+  # check if sample_id_col is provided, if not, all cells are sample01
+  sample_ids <- rep("sample01", nrow(exp_data))
+  if (!is.null(sample_id_col)) {
+    stopifnot(sample_id_col %in% colnames(exp_data))
+    sample_ids <- exp_data[[sample_id_col]]
+  }
 
   stopifnot(
     all(marker_col %in% colnames(exp_data)),
@@ -99,7 +108,8 @@ make_spe_from_expr_data <- function(expression_file, hierarchy_file,
     assays = list(counts = exp_matrix),
     spatialCoords = cell_coords,
     colData = col_data,
-    rowData = row_data
+    rowData = row_data,
+    sample_id = sample_ids
   )
   spe
 }
