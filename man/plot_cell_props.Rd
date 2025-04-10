@@ -10,6 +10,7 @@ plot_cell_props(
   parent_colname = "HierarchyLevel1",
   cell_types = NULL,
   cell_type_colname = "HierarchyLevel4",
+  plot_text = TRUE,
   stack = TRUE,
   facet_by = "sample_id"
 )
@@ -25,6 +26,9 @@ which they should be plotted (default: NULL = plot all cell types)}
 
 \item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
+
+\item{plot_text}{If set to TRUE will add text labels to the plot (default:
+TRUE). Note: only relavant for stacked bar plots.}
 
 \item{stack}{If set to TRUE will create a stacked proportion plot per sample,
 otherwise will create a standard bar plot per sample (default: TRUE).}

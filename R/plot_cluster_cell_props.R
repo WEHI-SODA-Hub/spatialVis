@@ -31,11 +31,12 @@ plot_cluster_cell_props <- function(spe,
     parent_types <- unique(SingleCellExperiment::colData(spe)[[parent_type_colname]]) # nolint: line_length_linter.
   }
   if (is.null(cell_types)) {
-    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]]) # nolint: line_length_linter.
+    cell_types <-
+      unique(SingleCellExperiment::colData(spe)[[cell_type_colname]])
   }
 
   # summarise the cluster memberships
-  membership_props <- SingleCellExperiment::colData(spe) %>%
+  cluster_membership_props <- SingleCellExperiment::colData(spe) %>%
     as.data.frame() %>%
     dplyr::filter(!!as.name(parent_type_colname) %in% parent_types) %>%
     dplyr::filter(!(!!as.name(parent_type_colname) %in%
@@ -43,10 +44,6 @@ plot_cluster_cell_props <- function(spe,
     dplyr::group_by_at(c("cluster", cell_type_colname)) %>%
     dplyr::summarise(count = dplyr::n()) %>%
     dplyr::ungroup() %>%
-    dplyr::group_by(cluster) # nolint: object_usage_linter.
-
-  # calculate the proportions in each cluster
-  cluster_membership_props <- membership_props %>%
     dplyr::group_by_at(c("cluster")) %>%
     dplyr::group_modify(~{
       proportion <- .x$count / sum(.x$count)

@@ -10,6 +10,8 @@ library(dplyr)
 #' which they should be plotted (default: NULL = plot all cell types)
 #' @param cell_type_colname Column name in colData containing cell type
 #' information (default: "HierarchyLevel4")
+#' @param plot_text If set to TRUE will add text labels to the plot (default:
+#' TRUE). Note: only relavant for stacked bar plots.
 #' @param stack If set to TRUE will create a stacked proportion plot per sample,
 #' otherwise will create a standard bar plot per sample (default: TRUE).
 #' @param facet_by Column name in colData to facet the plot by (default:
@@ -22,6 +24,7 @@ plot_cell_props <- function(spe,
                             parent_colname = "HierarchyLevel1",
                             cell_types = NULL,
                             cell_type_colname = "HierarchyLevel4",
+                            plot_text = TRUE,
                             stack = TRUE,
                             facet_by = "sample_id") {
   stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
@@ -33,7 +36,8 @@ plot_cell_props <- function(spe,
     parent_types <- unique(SingleCellExperiment::colData(spe)[[parent_colname]])
   }
   if (is.null(cell_types)) {
-    cell_types <- unique(SingleCellExperiment::colData(spe)[[cell_type_colname]]) # nolint: line_length_linter.
+    cell_types <-
+      unique(SingleCellExperiment::colData(spe)[[cell_type_colname]])
   }
 
   membership_props <- SingleCellExperiment::colData(spe) %>%
@@ -58,16 +62,19 @@ plot_cell_props <- function(spe,
                                               fill = !!as.name(cell_type_colname))) + # nolint: line_length_linter.
       ggplot2::geom_bar(position = "stack", stat = "identity") +
       ggplot2::scale_fill_manual(values = pal) +
-      ggplot2::geom_text(ggplot2::aes(label = round(proportion, 2)), size = 3,
-                         position = ggplot2::position_stack(vjust = 0.5)) +
       ggplot2::theme(axis.title.y = ggplot2::element_blank(),
                      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1),
                      axis.title.x = ggplot2::element_blank(),
                      strip.text.y = ggplot2::element_blank(),
                      panel.background = ggplot2::element_blank())
+    if (plot_text) {
+      prop_plot <- prop_plot +
+        ggplot2::geom_text(ggplot2::aes(label = round(proportion, 2)), size = 3, # nolint: object_usage_linter, line_length_linter.
+                           position = ggplot2::position_stack(vjust = 0.5))
+    }
   } else {
     prop_plot <- ggplot2::ggplot(data = membership_props,
-                                 ggplot2::aes(x = !!as.name(cell_type_colname), # nolint: line_length_linter.
+                                 ggplot2::aes(x = !!as.name(cell_type_colname),
                                               y = proportion)) + # nolint: object_usage_linter, line_length_linter.
       ggplot2::geom_bar(stat = "identity") +
       ggplot2::facet_wrap(dplyr::vars(!!rlang::sym(facet_by))) +
