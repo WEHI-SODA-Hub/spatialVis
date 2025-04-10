@@ -70,7 +70,7 @@ plot_cell_props <- function(spe,
                                  ggplot2::aes(x = !!as.name(cell_type_colname), # nolint: line_length_linter.
                                               y = proportion)) + # nolint: object_usage_linter, line_length_linter.
       ggplot2::geom_bar(stat = "identity") +
-      ggplot2::facet_wrap(vars(!!rlang::sym(facet_by))) +
+      ggplot2::facet_wrap(dplyr::vars(!!rlang::sym(facet_by))) +
       ggplot2::theme(axis.title.y = ggplot2::element_text(),
                      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1),
                      axis.title.x = ggplot2::element_blank(),
