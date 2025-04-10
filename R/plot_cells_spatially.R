@@ -30,6 +30,8 @@ plot_cells_spatially <- function(spe,
   stopifnot(cell_type_colname %in% colnames(SingleCellExperiment::colData(spe)))
   stopifnot(parent_type_colname %in%
               colnames(SingleCellExperiment::colData(spe)))
+  stopifnot("sample_id" %in%
+              colnames(SingleCellExperiment::colData(spe)))
 
   if (colour_by == "cell_type") {
     stopifnot(cell_type_colname %in%
@@ -52,20 +54,24 @@ plot_cells_spatially <- function(spe,
   stopifnot(length(centroid_x_col) == 1 && length(centroid_y_col) == 1)
 
   spe_parent_types <- SingleCellExperiment::colData(spe)[[parent_type_colname]]
+  sample_ids <- SingleCellExperiment::colData(spe)[["sample_id"]]
   if (colour_by == "cluster") {
     spe_clusters <- SingleCellExperiment::colData(spe)[["cluster"]]
     df <- dplyr::mutate(coords, cluster = as.factor(spe_clusters),
-                        parent_type = spe_parent_types)
+                        parent_type = spe_parent_types,
+                        sample_id = sample_ids)
     ncols <- df$cluster %>% unique() %>% length()
   } else if (colour_by == "cell_type") {
     spe_cell_types <- SingleCellExperiment::colData(spe)[[cell_type_colname]]
     df <- dplyr::mutate(coords, cell_type = spe_cell_types,
-                        parent_type = spe_parent_types)
+                        parent_type = spe_parent_types,
+                        sample_id = sample_ids)
     ncols <- df$cell_type %>% unique() %>% length()
   } else {
     spe_meta <- SingleCellExperiment::colData(spe)[[colour_by]]
     df <- dplyr::mutate(coords, !!colour_by := as.factor(spe_meta), # nolint: object_usage_linter, line_length_linter.
-                        parent_type = spe_parent_types)
+                        parent_type = spe_parent_types,
+                        sample_id = sample_ids)
     ncols <- df[[colour_by]] %>% unique() %>% length()
   }
 
@@ -78,6 +84,7 @@ plot_cells_spatially <- function(spe,
                                            y = !!as.name(centroid_y_col))) +
     ggplot2::geom_point(ggplot2::aes(color = !!as.name(colour_by)),
                         size = pointsize) + # nolint: object_usage_linter.
+    ggplot2::facet_wrap(~ sample_id) +
     ggplot2::theme_minimal() +
     ggplot2::scale_colour_manual(values = pal)
 
