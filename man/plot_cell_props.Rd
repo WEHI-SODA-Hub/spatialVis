@@ -10,20 +10,27 @@ plot_cell_props(
   parent_colname = "HierarchyLevel1",
   cell_types = NULL,
   cell_type_colname = "HierarchyLevel4",
-  stack = TRUE
+  stack = TRUE,
+  facet_by = "sample_id"
 )
 }
 \arguments{
 \item{spe}{SingleCellExperiment object containing cell type information}
 
+\item{parent_types}{Character vector of parent cell types to include
+(default: NULL = all parent types)}
+
 \item{cell_types}{Character vector of cell types to plot and the order in
-which they should be plotted (default: plot all cell types)}
+which they should be plotted (default: NULL = plot all cell types)}
 
 \item{cell_type_colname}{Column name in colData containing cell type
 information (default: "HierarchyLevel4")}
 
 \item{stack}{If set to TRUE will create a stacked proportion plot per sample,
 otherwise will create a standard bar plot per sample (default: TRUE).}
+
+\item{facet_by}{Column name in colData to facet the plot by (default:
+"sample_id")}
 }
 \value{
 ggplot object
