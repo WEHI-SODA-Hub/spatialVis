@@ -1,7 +1,8 @@
 test_that("make_spe_from_expr_data() works", {
   # Load the data
   spe <- make_spe_from_expr_data("../../data-raw/simulated.csv",
-                                 "../../inst/extdata/hierarchy.yaml")
+                                 "../../inst/extdata/hierarchy.yaml",
+                                 metadata_cols = c("Image", "In_Tumour"))
   col_data <- SingleCellExperiment::colData(spe)
   spatial_coords <- SpatialExperiment::spatialCoords(spe)
 
@@ -54,6 +55,7 @@ test_that("make_spe_from_expr_data() works for split marker input", {
   spe <- make_spe_from_expr_data(tempfile,
                                  "../../inst/extdata/hierarchy.yaml",
                                  marker_col = "CellType",
+                                 metadata_cols = c("Image", "In_Tumour"),
                                  are_markers_split = TRUE)
   col_data <- SingleCellExperiment::colData(spe)
   spatial_coords <- SpatialExperiment::spatialCoords(spe)

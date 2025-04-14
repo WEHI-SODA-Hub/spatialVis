@@ -28,6 +28,10 @@ create_spatial_clusters <- function(spe,
                                     number_clusters_kmeans = 10,
                                     seed = 123) {
 
+  # Check if the required columns are present in the data frame
+  stopifnot(image_col %in% colnames(SingleCellExperiment::colData(spe)))
+  stopifnot(phenotype_col %in% colnames(SingleCellExperiment::colData(spe)))
+
   # Get the spatial coordinates and grep out whole column names
   coords <- SpatialExperiment::spatialCoords(spe) %>% as.data.frame()
   centroid_x_col <- grep(centroid_x_col, colnames(coords), value = TRUE)

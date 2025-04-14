@@ -6,8 +6,8 @@ library(dplyr)
 #' hierarchy levels and constructs a SpatialExperiment object.
 #' @param expression_file Path to the expression data file
 #' @param hierarchy_file Path to the YAML file containing cell hierarchies
-#' @param metadata_cols Character vector of metadata columns (default: c("Image"
-#' , "Class", "In Tumour"))
+#' @param metadata_cols Character vector of metadata columns (default:
+#' c("Image"))
 #' @param marker_col Column name for the marker class (default: "Class")
 #' @param centroid_x_col Column name for the x-coordinate of the cell centroid
 #' (default: "Centroid X")
@@ -20,7 +20,7 @@ library(dplyr)
 #' @export
 #' @importFrom dplyr %>%
 make_spe_from_expr_data <- function(expression_file, hierarchy_file,
-                                    metadata_cols = c("Image", "In Tumour"),
+                                    metadata_cols = c("Image"),
                                     marker_col = "Class",
                                     centroid_x_col = "Centroid X",
                                     centroid_y_col = "Centroid Y",
