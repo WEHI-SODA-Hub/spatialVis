@@ -8,6 +8,7 @@ plot_cell_props(
   spe,
   parent_types = NULL,
   parent_colname = "HierarchyLevel1",
+  exclude_parent_types = NULL,
   cell_types = NULL,
   cell_type_colname = "HierarchyLevel4",
   plot_text = TRUE,
@@ -20,6 +21,9 @@ plot_cell_props(
 
 \item{parent_types}{Character vector of parent cell types to include
 (default: NULL = all parent types)}
+
+\item{exclude_parent_types}{Character vector of parent cell types to exclude
+(default: NULL = no parent types excluded)}
 
 \item{cell_types}{Character vector of cell types to plot and the order in
 which they should be plotted (default: NULL = plot all cell types)}

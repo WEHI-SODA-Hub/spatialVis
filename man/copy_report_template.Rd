@@ -4,7 +4,11 @@
 \alias{copy_report_template}
 \title{Copy Quarto Report Template}
 \usage{
-copy_report_template(template_name = "report_template.qmd", output_dir = ".")
+copy_report_template(
+  template_name = "report_template.qmd",
+  output_dir = ".",
+  overwrite = FALSE
+)
 }
 \arguments{
 \item{template_name}{Name of the template file (default:

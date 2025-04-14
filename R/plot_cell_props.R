@@ -6,6 +6,8 @@ library(dplyr)
 #' @param spe SingleCellExperiment object containing cell type information
 #' @param parent_types Character vector of parent cell types to include
 #' (default: NULL = all parent types)
+#' @param exclude_parent_types Character vector of parent cell types to exclude
+#' (default: NULL = no parent types excluded)
 #' @param cell_types Character vector of cell types to plot and the order in
 #' which they should be plotted (default: NULL = plot all cell types)
 #' @param cell_type_colname Column name in colData containing cell type
@@ -22,11 +24,13 @@ library(dplyr)
 plot_cell_props <- function(spe,
                             parent_types = NULL,
                             parent_colname = "HierarchyLevel1",
+                            exclude_parent_types = NULL,
                             cell_types = NULL,
                             cell_type_colname = "HierarchyLevel4",
                             plot_text = TRUE,
                             stack = TRUE,
                             facet_by = "sample_id") {
+
   stopifnot(parent_colname %in% colnames(SingleCellExperiment::colData(spe)))
   stopifnot(cell_type_colname %in% colnames(SingleCellExperiment::colData(spe)))
   stopifnot(facet_by %in% colnames(SingleCellExperiment::colData(spe)))
@@ -44,6 +48,8 @@ plot_cell_props <- function(spe,
     as.data.frame() %>%
     dplyr::filter(!!as.name(cell_type_colname) %in% cell_types) %>%
     dplyr::filter(!!as.name(parent_colname) %in% parent_types) %>%
+    dplyr::filter(!(!!as.name(parent_colname) %in%
+                      exclude_parent_types)) %>%
     dplyr::group_by_at(c(facet_by, cell_type_colname)) %>%
     dplyr::summarise(count = dplyr::n()) %>%
     dplyr::group_modify(~{

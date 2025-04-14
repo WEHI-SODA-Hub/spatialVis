@@ -13,8 +13,18 @@ test_that("plot_cell_props with custom cell types", {
 
   # test that the output is a ggplot object
   expect_is(plot_cell_props(spe, cell_types = c("CD4", "CD8")), "ggplot")
+
+  # test with no stacking
   expect_is(plot_cell_props(spe, cell_types = c("CD4", "CD8"), stack = FALSE),
             "ggplot")
+
+  # test by filtering out parent types
+  expect_is(plot_cell_props(spe, cell_types = c("CD4", "CD8"),
+                            parent_types = c("T_cells")), "ggplot")
+
+  # test by excluding parent types
+  expect_is(plot_cell_props(spe, cell_types = c("CD4", "CD8"),
+                            exclude_parent_types = c("T_cells")), "ggplot")
 })
 
 test_that("plot_cell_props with facet_by variable", {

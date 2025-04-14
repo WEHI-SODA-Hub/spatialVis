@@ -6,7 +6,7 @@
 #' "report_template.qmd").
 #' @export
 copy_report_template <- function(template_name = "report_template.qmd",
-                                 output_dir = ".") {
+                                 output_dir = ".", overwrite = FALSE) {
 
   # Check that the output directory exists
   if (!dir.exists(output_dir)) {
@@ -25,6 +25,6 @@ copy_report_template <- function(template_name = "report_template.qmd",
   }
 
   # Copy the template to the current directory
-  file.copy(template_path, output_dir, overwrite = FALSE)
+  file.copy(template_path, output_dir, overwrite = overwrite)
   message("Template copied to the current directory: ", template_name)
 }
