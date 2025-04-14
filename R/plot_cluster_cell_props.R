@@ -28,7 +28,8 @@ plot_cluster_cell_props <- function(spe,
 
   # get all parent and cell types if not provided
   if (is.null(parent_types)) {
-    parent_types <- unique(SingleCellExperiment::colData(spe)[[parent_type_colname]]) # nolint: line_length_linter.
+    parent_types <-
+      unique(SingleCellExperiment::colData(spe)[[parent_type_colname]])
   }
   if (is.null(cell_types)) {
     cell_types <-

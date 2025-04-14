@@ -10,5 +10,5 @@ test_that("plot_cells_spatially", {
   expect_is(plot_cells_spatially(spe, colour_by = "cluster"), "ggplot")
 
   # test with tumour colouring
-  expect_is(plot_cells_spatially(spe, colour_by = "In.Tumour"), "ggplot")
+  expect_is(plot_cells_spatially(spe, colour_by = "In_Tumour"), "ggplot")
 })

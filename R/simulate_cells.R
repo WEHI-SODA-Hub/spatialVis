@@ -72,7 +72,7 @@ simulate_cells <- function(markers = example_markers, n_cells = 5000,
 
   # 'fake' static values
   marker_data$Image <- "image.tiff"
-  marker_data$`In Tumour` <- 0
+  marker_data$In_Tumour <- 0
 
   # rename cols
   marker_data <- marker_data %>%
