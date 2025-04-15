@@ -2,6 +2,7 @@
 
 export(copy_report_template)
 export(create_spatial_clusters)
+export(filter_spe_by_metadata)
 export(load_hierarchies)
 export(make_spe_from_expr_data)
 export(plot_cell_props)
