@@ -21,7 +21,8 @@ Imports:
  Rcpp,
  uwot,
  umap,
- RANN
+ RANN,
+ jsonlite
 Suggests:
  testthat,
  usethis
