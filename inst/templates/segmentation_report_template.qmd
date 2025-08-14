@@ -1,0 +1,53 @@
+---
+title: "Segmentation Report"
+format:
+    html:
+        code-fold: true
+        code-tools: true
+params:
+    sample_name: "sample"
+    geojson_file: "inst/extdata/test_segmentations.geojson"
+---
+
+```{r setup, include=FALSE}
+library(devtools)
+if (!requireNamespace("spatialVis", quietly = TRUE)) {
+    devtools::install_github("WEHI-SODA-Hub/spatialVis")
+}
+library(spatialVis)
+```
+
+```{r parse_args}
+sample_name <- params$sample_name
+geojson_file <- params$geojson_file
+
+stopifnot(file.exists(geojson_file))
+```
+
+# `r sample_name`
+
+```{r, show_params}
+params_table <- data.frame(
+    Parameter = c("Sample Name", "GeoJSON file"),
+    Value = c(
+        sample_name,
+        geojson_file
+    )
+)
+
+knitr::kable(params_table, format = "markdown", col.names = c("Parameter", "Value"))
+```
+
+## Segmentation summary statistics
+
+```{r, segmentation_stats}
+summary_table <- summarise_segmentation_stats(geojson_file)
+
+knitr::kable(summary_table, format = "markdown")
+```
+
+## Channel intensities
+
+```{r, channel_intensities}
+plot_intensity_measurements(geojson_file)
+```
