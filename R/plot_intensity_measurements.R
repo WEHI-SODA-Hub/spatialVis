@@ -50,8 +50,8 @@ plot_intensity_measurements <- function(geojson_file,
 
   # Format dataframe for plotting
   df <- measurement_data[, col_idxs] %>%
-    dplyr::filter(!if_all(everything(), is.na)) %>%
-    tidyr::pivot_longer(everything(),
+    dplyr::filter(!dplyr::if_all(dplyr::everything(), is.na)) %>%
+    tidyr::pivot_longer(dplyr::everything(),
                         names_to = "measurement",
                         values_to = "intensity") %>%
     tidyr::separate(measurement, into = c("channel", "compartment", #nolint
@@ -65,7 +65,7 @@ plot_intensity_measurements <- function(geojson_file,
   ggplot2::ggplot(data = df, ggplot2::aes(x = channel, y = intensity, #nolint
                                           fill = channel)) +
     ggplot2::geom_violin(adjust = 2) +
-    ggplot2::geom_jitter(width = 0.1, alpha = 0.6) +
+    ggplot2::geom_jitter(width = 0.1, alpha = 0.6, size = 0.5) +
     ggplot2::facet_wrap(~ compartment, scales = "free_y") +
     ggplot2::ggtitle(paste(calculation, "intensity measurements")) +
     ggplot2::scale_fill_manual(values = pal) +
