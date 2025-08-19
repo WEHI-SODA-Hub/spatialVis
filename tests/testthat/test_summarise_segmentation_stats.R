@@ -1,12 +1,13 @@
 test_that("summarise_segmentation_stats() works", {
-  # Load the data
-  seg_stats <- summarise_segmentation_stats(
+  measurement_data <- get_segmentation_measurements(
     "../../inst/extdata/test_segmentations.geojson"
   )
+
+  seg_stats <- summarise_segmentation_stats(measurement_data)
 
   # Check that the data is a data frame
   expect_is(seg_stats, "data.frame")
 
   # Check that the data has the correct number of rows
-  expect_equal(nrow(seg_stats), 14)
+  expect_equal(nrow(seg_stats), 13)
 })

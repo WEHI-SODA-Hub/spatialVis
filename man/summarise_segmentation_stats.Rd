@@ -5,7 +5,7 @@
 \title{Summarise segmentation statistics from GeoJSON file}
 \usage{
 summarise_segmentation_stats(
-  geojson_file,
+  measurement_data,
   compartments = c("Cell", "Nucleus"),
   compartment_measurements = c("Area", "Length", "Circularity", "Solidity",
     "Max diameter", "Min diameter"),
@@ -14,8 +14,6 @@ summarise_segmentation_stats(
 )
 }
 \arguments{
-\item{geojson_file}{Path to the GeoJSON file containing segmentation data}
-
 \item{compartments}{Character vector of compartments to summarise (default:
 c("Cell", "Nucleus"))}
 
@@ -28,12 +26,14 @@ summarise (default: c("Nucleus/Cell area ratio"))}
 
 \item{summary_funcs}{List of functions to summarise the measurements
 (default: list(Mean = mean, Median = median))}
+
+\item{geojson_file}{Path to the GeoJSON file containing segmentation data}
 }
 \value{
 A data.frame object
 }
 \description{
-Take a GeoJSON file containing cell segmentation output and
-summarise statistics, returning an output table. If measurements are not
-available, the function will return only the cell counts.
+Take segmentation measurements and summarise statistics,
+returning an output table. If measurements are not available, the function
+will return only the cell counts.
 }

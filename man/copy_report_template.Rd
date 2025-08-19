@@ -5,14 +5,15 @@
 \title{Copy Quarto Report Template}
 \usage{
 copy_report_template(
-  template_name = "report_template.qmd",
+  template_name = "phenotyping_report_template.qmd",
   output_dir = ".",
   overwrite = FALSE
 )
 }
 \arguments{
 \item{template_name}{Name of the template file (default:
-"report_template.qmd").}
+"phenotyping_report_template.qmd"). Options are:
+phenotyping_report_template.qmd or segmentation_report_template.qmd.}
 }
 \description{
 This function copies the Quarto (.qmd) report template from the package to

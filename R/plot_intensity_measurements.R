@@ -3,34 +3,28 @@ library(dplyr)
 #' @title Plot intensity measurements for all channels from cell segmentation
 #' GeoJSON file
 #'
-#' @description Take a GeoJSON file containing cell segmentation output and
-#' plot intensity measurements for the specified compartment.
+#' @description Take segmentation measurements and plot intensity measurements
+#' for the specified compartments.
+#'
 #' @param geojson_file Path to the GeoJSON file containing segmentation data
 #' @param compartment Compartments to plot intensity measurements for (default:
 #' c("Nucleus", "Cell", "Cytoplasm", "Membrane")). Must be at least one of the
 #' following: "Cell", "Nucleus", "Cytoplasm", "Membrane".
 #' @param calculation Calculation to use for intensity measurements (default:
 #' "Median"). Options are "Mean", "Median", "Min", "Max" and "Std.Dev".
+#'
 #' @export
 #' @importFrom dplyr %>%
-plot_intensity_measurements <- function(geojson_file,
+plot_intensity_measurements <- function(measurement_data,
                                         compartments =
                                           c("Nucleus", "Cell",
                                             "Cytoplasm", "Membrane"),
                                         calculation = "Median") {
-  seg <- jsonlite::fromJSON(geojson_file)
 
   stopifnot(
-    "features" %in% names(seg),
-    "properties" %in% names(seg$features),
-    "objectType" %in% names(seg$features$properties),
-    "measurements" %in% names(seg$features$properties),
     all(compartments %in% c("Cell", "Nucleus", "Cytoplasm", "Membrane")),
     calculation %in% c("Mean", "Median", "Min", "Max", "Std.Dev")
   )
-
-  properties <- seg$features$properties
-  measurement_data <- properties$measurements
 
   # Find measurement columns for all compartments and channels
   measurements <- paste(compartments, calculation, sep = ": ")

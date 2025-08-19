@@ -6,22 +6,22 @@
 GeoJSON file}
 \usage{
 plot_intensity_measurements(
-  geojson_file,
+  measurement_data,
   compartments = c("Nucleus", "Cell", "Cytoplasm", "Membrane"),
   calculation = "Median"
 )
 }
 \arguments{
-\item{geojson_file}{Path to the GeoJSON file containing segmentation data}
-
 \item{calculation}{Calculation to use for intensity measurements (default:
 "Median"). Options are "Mean", "Median", "Min", "Max" and "Std.Dev".}
+
+\item{geojson_file}{Path to the GeoJSON file containing segmentation data}
 
 \item{compartment}{Compartments to plot intensity measurements for (default:
 c("Nucleus", "Cell", "Cytoplasm", "Membrane")). Must be at least one of the
 following: "Cell", "Nucleus", "Cytoplasm", "Membrane".}
 }
 \description{
-Take a GeoJSON file containing cell segmentation output and
-plot intensity measurements for the specified compartment.
+Take segmentation measurements and plot intensity measurements
+for the specified compartments.
 }

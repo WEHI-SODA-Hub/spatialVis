@@ -28,7 +28,7 @@ stopifnot(file.exists(geojson_file))
 
 ```{r, show_params}
 params_table <- data.frame(
-    Parameter = c("Sample Name", "GeoJSON file"),
+    Parameter = c("Sample name", "GeoJSON file"),
     Value = c(
         sample_name,
         geojson_file
@@ -41,13 +41,22 @@ knitr::kable(params_table, format = "markdown", col.names = c("Parameter", "Valu
 ## Segmentation summary statistics
 
 ```{r, segmentation_stats}
-summary_table <- summarise_segmentation_stats(geojson_file)
+measurement_data <- get_segmentation_measurements(geojson_file)
 
-knitr::kable(summary_table, format = "markdown")
+object_count <- table(measurement_data$objectType) |> data.frame()
+colnames(object_count) <- c("Object", "Count")
+knitr::kable(object_count, format = "markdown")
+
+if (ncol(measurement_data) > 1) {
+  summary_table <- summarise_segmentation_stats(measurement_data)
+  knitr::kable(summary_table, format = "markdown")
+}
 ```
 
 ## Channel intensities
 
 ```{r, channel_intensities}
-plot_intensity_measurements(geojson_file)
+if (ncol(measurement_data) > 1) {
+  plot_intensity_measurements(measurement_data)
+}
 ```
