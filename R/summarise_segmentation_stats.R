@@ -50,7 +50,8 @@ summarise_segmentation_stats <- function(measurement_data,
                                          stringr::fixed(measurement)))
     if (length(col_idx) == 1) {
       tmp <- measurement_data[[col_idx]]
-      summary_list[[measurement]] <- sapply(
+      measurement_colname <- colnames(measurement_data)[col_idx]
+      summary_list[[measurement_colname]] <- sapply(
         summary_funcs, function(func) {
           func(tmp[!is.na(tmp)])
         }

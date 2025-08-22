@@ -53,6 +53,36 @@ if (ncol(measurement_data) > 1) {
 }
 ```
 
+## Plot compartment measurements
+
+```{r, compartment_measurements}
+if (ncol(measurement_data) > 1) {
+  plot_compartment_measurements(measurement_data)
+}
+```
+
+## Plot Nucleus/Cell ratio
+
+```{r}
+measurement <- "Nucleus/Cell area ratio"
+col_idx <- which(stringr::str_detect(colnames(measurement_data),
+                                     stringr::fixed(measurement)))
+if (length(col_idx) > 0) {
+  df <- data.frame(measurement = measurement,
+                   value = measurement_data[[col_idx]])
+  ggplot2::ggplot(data = df, ggplot2::aes(x = measurement, y = value)) +
+    ggplot2::geom_violin(adjust = 2) +
+    ggplot2::geom_jitter(width = 0.1, alpha = 0.6, size = 0.5) +
+    ggplot2::facet_wrap(~ measurement, scales = "free_y") +
+    ggplot2::ggtitle(measurement) +
+    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_text(angle = 90, hjust = 1),
+                   axis.title.x = ggplot2::element_blank(),
+                   strip.text.y = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank())
+}
+```
+
 ## Channel intensities
 
 ```{r, channel_intensities}
