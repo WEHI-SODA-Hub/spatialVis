@@ -38,7 +38,7 @@ get_segmentation_measurements <- function(geojson_file,
   } else {
     # If no measurements are available, we'll just get a data.table containing
     # the object types -- this is only useful for counting cells
-    dt <- data.table::as.data.table(seg$features$properties)
+    dt <- data.table::as.data.table(seg_properties)
   }
 
   if (only_keep_cells) {
