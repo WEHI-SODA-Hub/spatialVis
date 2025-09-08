@@ -58,8 +58,8 @@ plot_compartment_measurements <- function(measurement_data,
 
   ggplot2::ggplot(data = df, ggplot2::aes(x = compartment, y = value, #nolint
                                           fill = compartment)) + #nolint
-    ggplot2::geom_violin(adjust = 2) +
-    ggplot2::geom_jitter(width = 0.1, alpha = 0.6, size = 0.5) +
+    ggplot2::geom_violin(adjust = 2, alpha = 0.8) +
+    ggplot2::geom_jitter(width = 0.1, alpha = 0.1, size = 0.2) +
     ggplot2::facet_wrap(~ measurement, scales = "free_y") +
     ggplot2::ggtitle("Compartment measurements") +
     ggplot2::scale_fill_manual(values = pal) +

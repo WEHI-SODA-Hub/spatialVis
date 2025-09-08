@@ -56,10 +56,8 @@ plot_intensity_measurements <- function(measurement_data,
     RColorBrewer::brewer.pal(n = 11, name = "Spectral")
   )(length(unique(df$channel)))
 
-  ggplot2::ggplot(data = df, ggplot2::aes(x = channel, y = intensity, #nolint
-                                          fill = channel)) +
-    ggplot2::geom_violin(adjust = 2) +
-    ggplot2::geom_jitter(width = 0.1, alpha = 0.6, size = 0.5) +
+  ggplot2::ggplot(data = df, ggplot2::aes(x = intensity, fill = channel)) + #nolint
+    ggplot2::geom_density(alpha = 0.2) +
     ggplot2::facet_wrap(~ compartment, scales = "free_y") +
     ggplot2::ggtitle(paste(calculation, "intensity measurements")) +
     ggplot2::scale_fill_manual(values = pal) +
@@ -67,5 +65,6 @@ plot_intensity_measurements <- function(measurement_data,
                    axis.text.x = ggplot2::element_text(angle = 90, hjust = 1),
                    axis.title.x = ggplot2::element_blank(),
                    strip.text.y = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_blank())
+                   panel.background = ggplot2::element_blank(),
+                   legend.position = "bottom")
 }

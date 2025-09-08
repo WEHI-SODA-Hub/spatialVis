@@ -4,6 +4,8 @@ format:
     html:
         code-fold: true
         code-tools: true
+        fig-width: 12
+        fig-height: 8
 params:
     sample_name: "sample"
     geojson_file: "inst/extdata/segmentation.geojson"
@@ -26,7 +28,6 @@ params:
     mesmer_remove_border_cells: null
     mesmer_pixel_expansion: null
     mesmer_padding: null
-
 ---
 
 ```{r setup, include=FALSE}
@@ -37,7 +38,7 @@ if (!requireNamespace("spatialVis", quietly = TRUE)) {
 library(spatialVis)
 ```
 
-```{r parse_args}
+```{r parse_args, include=FALSE}
 parse_value_arg <- function(arg) {
   if (is.null(arg)) {
     return(NA)
@@ -71,8 +72,6 @@ mesmer_pixel_expansion <- params$mesmer_pixel_expansion
 mesmer_padding <- parse_value_arg(params$mesmer_padding)
 ```
 
-# `r sample_name`
-
 ## Run parameters
 
 ```{r, show_params}
@@ -101,7 +100,6 @@ if (run_cellpose) {
       cellpose_pretrained_model
     )
   )
-  writeLines(capture.output(str(params_to_add)), "debug_output.txt")
   params_table <- rbind(params_table, params_to_add)
 } else if (run_mesmer) {
   params_to_add <- data.frame(
@@ -128,13 +126,19 @@ knitr::kable(params_table, format = "markdown", col.names = c("Parameter", "Valu
 
 ## Segmentation summary statistics
 
-```{r, segmentation_stats}
+Number of detected cells.
+
+```{r, segmentation_counts}
 measurement_data <- get_segmentation_measurements(geojson_file)
 
 object_count <- table(measurement_data$objectType) |> data.frame()
 colnames(object_count) <- c("Object", "Count")
 knitr::kable(object_count, format = "markdown")
+```
 
+Mean and median of measurements across all cells.
+
+```{r, segmentation_stats}
 if (ncol(measurement_data) > 1) {
   summary_table <- summarise_segmentation_stats(measurement_data)
   knitr::kable(summary_table, format = "markdown")
@@ -142,6 +146,9 @@ if (ncol(measurement_data) > 1) {
 ```
 
 ## Plot compartment measurements
+
+Box plots showing measurement distributions across nuclear and cellular
+compartments.
 
 ```{r, compartment_measurements}
 if (ncol(measurement_data) > 1) {
@@ -151,6 +158,8 @@ if (ncol(measurement_data) > 1) {
 
 ## Plot Nucleus/Cell ratio
 
+Histogram/density plot of nucleus/cell ratio across cells.
+
 ```{r}
 measurement <- "Nucleus/Cell area ratio"
 col_idx <- which(stringr::str_detect(colnames(measurement_data),
@@ -158,9 +167,11 @@ col_idx <- which(stringr::str_detect(colnames(measurement_data),
 if (length(col_idx) > 0) {
   df <- data.frame(measurement = measurement,
                    value = measurement_data[[col_idx]])
-  ggplot2::ggplot(data = df, ggplot2::aes(x = measurement, y = value)) +
-    ggplot2::geom_violin(adjust = 2) +
-    ggplot2::geom_jitter(width = 0.1, alpha = 0.6, size = 0.5) +
+
+  ggplot2::ggplot(data = df, ggplot2::aes(x = value)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
+                            binwidth = 0.05, colour = "black", fill = "white") +
+    ggplot2::geom_density() +
     ggplot2::facet_wrap(~ measurement, scales = "free_y") +
     ggplot2::ggtitle(measurement) +
     ggplot2::theme(axis.title.y = ggplot2::element_blank(),
@@ -172,6 +183,9 @@ if (length(col_idx) > 0) {
 ```
 
 ## Channel intensities
+
+Density plots of median intensity in the cell, cytoplasm, membrane and nuclear
+compartments.
 
 ```{r, channel_intensities}
 if (ncol(measurement_data) > 1) {
