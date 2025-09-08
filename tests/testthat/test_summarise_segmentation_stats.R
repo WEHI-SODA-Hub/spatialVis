@@ -1,6 +1,6 @@
 test_that("summarise_segmentation_stats() works", {
   measurement_data <- get_segmentation_measurements(
-    "../../inst/extdata/test_segmentations.geojson"
+    "../../inst/extdata/segmentation.geojson"
   )
 
   seg_stats <- summarise_segmentation_stats(measurement_data)

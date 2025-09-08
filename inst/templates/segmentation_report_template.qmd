@@ -6,7 +6,27 @@ format:
         code-tools: true
 params:
     sample_name: "sample"
-    geojson_file: "inst/extdata/test_segmentations.geojson"
+    geojson_file: "inst/extdata/segmentation.geojson"
+    nuclear_channel: ""
+    membrane_channels: ""
+    combine_method: ""
+    run_cellpose: false
+    cellpose_diameter: null
+    cellpose_min_area: null
+    cellpose_flow_threshold: null 
+    cellpose_cellprob_threshold: null
+    cellpose_model_type: null
+    cellpose_pretrained_model: null
+    run_mesmer: false
+    mesmer_segmentation_level: null
+    mesmer_maxima_threshold: null
+    mesmer_interior_threshold: null
+    mesmer_maxima_smooth: null
+    mesmer_min_nuclei_area: null
+    mesmer_remove_border_cells: null
+    mesmer_pixel_expansion: null
+    mesmer_padding: null
+
 ---
 
 ```{r setup, include=FALSE}
@@ -18,22 +38,90 @@ library(spatialVis)
 ```
 
 ```{r parse_args}
+parse_value_arg <- function(arg) {
+  if (is.null(arg)) {
+    return(NA)
+  }
+  return(arg)
+}
+
 sample_name <- params$sample_name
 geojson_file <- params$geojson_file
-
 stopifnot(file.exists(geojson_file))
+
+nuclear_channel <- parse_value_arg(params$nuclear_channel)
+membrane_channels <- parse_value_arg(params$membrane_channels)
+
+run_cellpose <- as.logical(params$run_cellpose)
+cellpose_diameter <- parse_value_arg(params$cellpose_diameter)
+cellpose_min_area <- parse_value_arg(params$cellpose_min_area)
+cellpose_flow_threshold <- parse_value_arg(params$cellpose_flow_threshold )
+cellpose_cellprob_threshold <- parse_value_arg(params$cellpose_cellprob_threshold)
+cellpose_model_type <- parse_value_arg(params$cellpose_model_type)
+cellpose_pretrained_model <- parse_value_arg(params$cellpose_pretrained_model)
+
+run_mesmer <- as.logical(params$run_mesmer)
+mesmer_segmentation_level <- parse_value_arg(params$mesmer_segmentation_level)
+mesmer_maxima_threshold <- parse_value_arg(params$mesmer_maxima_threshold)
+mesmer_interior_threshold <- parse_value_arg(params$mesmer_interior_threshold)
+mesmer_maxima_smooth <- parse_value_arg(params$mesmer_maxima_smooth)
+mesmer_min_nuclei_area <- parse_value_arg(params$mesmer_min_nuclei_area)
+mesmer_remove_border_cells <- as.logical(params$mesmer_remove_border_cells)
+mesmer_pixel_expansion <- params$mesmer_pixel_expansion
+mesmer_padding <- parse_value_arg(params$mesmer_padding)
 ```
 
 # `r sample_name`
 
+## Run parameters
+
 ```{r, show_params}
 params_table <- data.frame(
-    Parameter = c("Sample name", "GeoJSON file"),
-    Value = c(
-        sample_name,
-        geojson_file
-    )
+  Parameter = c("Sample Name", "GeoJSON File", "Nuclear Channel",
+                "Membrane Channels"),
+  Value = c(
+    sample_name,
+    geojson_file,
+    nuclear_channel,
+    membrane_channels
+  )
 )
+
+if (run_cellpose) {
+  params_to_add <- data.frame(
+    Parameter = c("Method", "Diameter", "Min Area", "Flow Threshold",
+                  "Cellprob Threshold", "Model Type", "Pretrained Model"),
+    Value = c(
+      "Cellpose",
+      cellpose_diameter,
+      cellpose_min_area,
+      cellpose_flow_threshold, 
+      cellpose_cellprob_threshold,
+      cellpose_model_type,
+      cellpose_pretrained_model
+    )
+  )
+  writeLines(capture.output(str(params_to_add)), "debug_output.txt")
+  params_table <- rbind(params_table, params_to_add)
+} else if (run_mesmer) {
+  params_to_add <- data.frame(
+    Parameter = c("Method", "Segmentation Level", "Maxima Threshold",
+                  "Interior Threshold", "Maxima Smooth", "Min Nuclei Area",
+                  "Remove Border Cells", "Pixel Expansion", "Padding"),
+    Value = c(
+      "Mesmer",
+      mesmer_segmentation_level,
+      mesmer_maxima_threshold,
+      mesmer_interior_threshold,
+      mesmer_maxima_smooth,
+      mesmer_min_nuclei_area,
+      mesmer_remove_border_cells,
+      mesmer_pixel_expansion,
+      mesmer_padding
+    )
+  )
+  params_table <- rbind(params_table, params_to_add)
+}
 
 knitr::kable(params_table, format = "markdown", col.names = c("Parameter", "Value"))
 ```
