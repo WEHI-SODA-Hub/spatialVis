@@ -8,12 +8,17 @@ GeoJSON file}
 plot_intensity_measurements(
   measurement_data,
   compartments = c("Nucleus", "Cell", "Cytoplasm", "Membrane"),
-  calculation = "Median"
+  calculation = "Median",
+  percentiles = c(0.05, 0.95)
 )
 }
 \arguments{
 \item{calculation}{Calculation to use for intensity measurements (default:
 "Median"). Options are "Mean", "Median", "Min", "Max" and "Std.Dev".}
+
+\item{percentiles}{Numeric vector of length 2 specifying the lower and upper
+percentiles to use for x-axis limits (default: c(0.05, 0.95)). Must be
+between 0 and 1, and the first value must be less than the second value.}
 
 \item{geojson_file}{Path to the GeoJSON file containing segmentation data}
 
