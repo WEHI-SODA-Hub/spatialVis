@@ -2,12 +2,13 @@ library(dplyr)
 
 #' @title Plot cell and nucleus geometries from segmentation GeoJSON file
 #'
-#' @description This function takes cell and nucleus geometries from a
-#' segmentation GeoJSON file and creates a ggplot showing the outlines of the
-#' cells and nuclei within a randomly selected area containing at least a
-#' specified minimum number of cells.
+#' @description This function takes cell and nucleus geometries from a list and
+#' creates a ggplot showing the outlines of the cells and nuclei within a
+#' randomly selected area containing at least a specified minimum number of
+#' cells.
 #'
-#' @param geojson_file Path to the GeoJSON file containing segmentation data
+#' @param geom_data A list containing cell and nucleus geometries, as
+#' returned by `get_segmentation_geometry()`
 #' @param area_width Width of the area to plot (default: 500)
 #' @param area_height Height of the area to plot (default: 500)
 #' @param min_objects Minimum number of cell objects required in the area
@@ -16,14 +17,16 @@ library(dplyr)
 #' @return A ggplot object containing the cell and nucleus geometries
 #' @export
 #' @importFrom dplyr %>%
-plot_geometries <- function(geojson_file, area_width = 500,
+plot_geometries <- function(geom_data, area_width = 500,
                             area_height = 500, min_objects = 5) {
-  stopifnot(file.exists(geojson_file))
-  seg_data <- jsonlite::fromJSON(geojson_file)
+  stopifnot(
+    "cell" %in% names(geom_data),
+    "nucleus" %in% names(geom_data)
+  )
 
-  bbox <- get_random_bbox(seg_data, area_width, area_height, min_objects)
-  cells <- filter_objects_in_area(seg_data, bbox, type = "cell")
-  nuclei <- filter_objects_in_area(seg_data, bbox, type = "nucleus")
+  bbox <- get_random_bbox(geom_data, area_width, area_height, min_objects)
+  cells <- filter_objects_in_area(geom_data, bbox, type = "cell")
+  nuclei <- filter_objects_in_area(geom_data, bbox, type = "nucleus")
 
   plot_cell_geometries(cells, nuclei, bbox)
 }
@@ -81,15 +84,11 @@ get_bbox <- function(coords) {
 }
 
 # Select random bounding box with enough objects
-get_random_bbox <- function(seg_data,
+get_random_bbox <- function(geom_data,
                             area_width = 500,
                             area_height = 500,
                             min_objects = 5) {
-  is_cell <- seg_data$features$properties$objectType == "cell"
-  cell_coords <- seg_data$features$geometry$coordinates[is_cell]
-
-  # Get all cell bounding boxes
-  all_bboxes <- lapply(cell_coords, function(coords) {
+  all_bboxes <- lapply(geom_data$cell, function(coords) {
     get_bbox(coords)
   })
 
@@ -139,16 +138,14 @@ get_random_bbox <- function(seg_data,
 }
 
 # Function to filter objects within area
-filter_objects_in_area <- function(seg_data, area_bbox, type = "cell") {
+filter_objects_in_area <- function(geom_data, area_bbox, type = "cell") {
   filtered_features <- list()
   coords <- list()
 
-  is_cell <- seg_data$features$properties$objectType == "cell"
   if (type == "cell") {
-    coords <- seg_data$features$geometry$coordinates[is_cell]
+    coords <- geom_data$cell
   } else if (type == "nucleus") {
-    stopifnot("nucleusGeometry" %in% names(seg_data$features))
-    coords <- seg_data$features$nucleusGeometry$coordinates[is_cell]
+    coords <- geom_data$nucleus
   } else {
     stop("Invalid type: ", type)
   }

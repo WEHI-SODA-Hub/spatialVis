@@ -5,14 +5,15 @@
 \title{Plot cell and nucleus geometries from segmentation GeoJSON file}
 \usage{
 plot_geometries(
-  geojson_file,
+  geom_data,
   area_width = 500,
   area_height = 500,
   min_objects = 5
 )
 }
 \arguments{
-\item{geojson_file}{Path to the GeoJSON file containing segmentation data}
+\item{geom_data}{A list containing cell and nucleus geometries, as
+returned by `get_segmentation_geometry()`}
 
 \item{area_width}{Width of the area to plot (default: 500)}
 
@@ -25,8 +26,8 @@ plot_geometries(
 A ggplot object containing the cell and nucleus geometries
 }
 \description{
-This function takes cell and nucleus geometries from a
-segmentation GeoJSON file and creates a ggplot showing the outlines of the
-cells and nuclei within a randomly selected area containing at least a
-specified minimum number of cells.
+This function takes cell and nucleus geometries from a list and
+creates a ggplot showing the outlines of the cells and nuclei within a
+randomly selected area containing at least a specified minimum number of
+cells.
 }

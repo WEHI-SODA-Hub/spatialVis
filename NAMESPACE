@@ -3,6 +3,7 @@
 export(copy_report_template)
 export(create_spatial_clusters)
 export(filter_spe_by_metadata)
+export(get_segmentation_geometry)
 export(get_segmentation_measurements)
 export(load_hierarchies)
 export(make_spe_from_expr_data)
