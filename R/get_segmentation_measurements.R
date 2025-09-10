@@ -17,6 +17,8 @@ library(dplyr)
 #' @importFrom dplyr %>%
 get_segmentation_measurements <- function(geojson_file,
                                           only_keep_cells = TRUE) {
+  stopifnot(file.exists(geojson_file))
+
   seg <- jsonlite::fromJSON(geojson_file)
 
   stopifnot(
