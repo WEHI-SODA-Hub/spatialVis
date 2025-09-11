@@ -1,5 +1,3 @@
-library(dplyr)
-
 #' @title Get segmentation data from GeoJSON file
 #'
 #' @description This function reads a GeoJSON file containing cell segmentation

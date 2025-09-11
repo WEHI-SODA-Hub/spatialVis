@@ -1,5 +1,3 @@
-library(dplyr)
-
 #' @title Plot cell and nucleus geometries from segmentation GeoJSON file
 #'
 #' @description This function takes cell and nucleus geometries from a list and
@@ -61,7 +59,7 @@ plot_cell_geometries <- function(cells, nuclei, bbox) {
                        "Y: ", round(bbox$ymin), "-", round(bbox$ymax))
   ggplot2::ggplot(plot_data,
                   ggplot2::aes(x = x, y = y, group = id, colour = type)) + # nolint
-    ggplot2::geom_polygon(fill = NA, size = 0.5) +
+    ggplot2::geom_polygon(fill = NA, linewidth = 0.5) +
     ggplot2::scale_color_manual(
       values = c("cell" = "#377eb8", "nucleus" = "#4daf4a")
     ) +
