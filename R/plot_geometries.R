@@ -86,7 +86,7 @@ get_bbox <- function(coords) {
 get_random_bbox <- function(geom_data,
                             area_width = 500,
                             area_height = 500,
-                            min_objects = 5) {
+                            min_objects = 10) {
   all_bboxes <- lapply(geom_data$cell, function(coords) {
     get_bbox(coords)
   })
