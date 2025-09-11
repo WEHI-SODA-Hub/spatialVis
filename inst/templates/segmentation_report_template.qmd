@@ -192,3 +192,22 @@ if (ncol(measurement_data) > 1) {
   plot_intensity_measurements(measurement_data)
 }
 ```
+
+## Segmentation preview
+
+Plot of cell and nuclear geometries in two random 500x500 pixel regions
+containing at least 10 cell objects.
+
+```{r}
+geom_data <- get_segmentation_geometry(geojson_file)
+min_objects <- 10
+
+# Use tryCatch here as random selection of area may fail
+tryCatch({
+  p1 <- plot_geometries(geom_data, min_objects = min_objects)
+  p2 <- plot_geometries(geom_data, min_objects = min_objects)
+  gridExtra::grid.arrange(p1, p2, ncol = 2)
+}, error = function(e) {
+  cat("An error occurred:", conditionMessage(e), "\n")
+})
+```

@@ -12,13 +12,13 @@ library(dplyr)
 #' @param area_width Width of the area to plot (default: 500)
 #' @param area_height Height of the area to plot (default: 500)
 #' @param min_objects Minimum number of cell objects required in the area
-#' (default: 5)
+#' (default: 10)
 #'
 #' @return A ggplot object containing the cell and nucleus geometries
 #' @export
 #' @importFrom dplyr %>%
 plot_geometries <- function(geom_data, area_width = 500,
-                            area_height = 500, min_objects = 5) {
+                            area_height = 500, min_objects = 10) {
   stopifnot(
     "cell" %in% names(geom_data),
     "nucleus" %in% names(geom_data)
@@ -32,8 +32,7 @@ plot_geometries <- function(geom_data, area_width = 500,
 }
 
 # Function to plot cell and nucleus geometries
-plot_cell_geometries <- function(cells, nuclei, bbox,
-                                 title = "Segmentation Preview") {
+plot_cell_geometries <- function(cells, nuclei, bbox) {
   plot_data <- data.frame()
 
   # Helper function to convert polygon coordinates to data frame
@@ -58,16 +57,18 @@ plot_cell_geometries <- function(cells, nuclei, bbox,
     plot_data <- rbind(plot_data, nuc_df)
   }
 
-  plot_title <- paste0(title,
-                       " X: ", round(bbox$xmin), "-", round(bbox$xmax),
-                       " Y: ", round(bbox$ymin), "-", round(bbox$ymax))
-  ggplot2::ggplot(plot_data, aes(x = x, y = y, group = id, colour = type)) + # nolint
+  plot_title <- paste0("X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
+                       "Y: ", round(bbox$ymin), "-", round(bbox$ymax))
+  ggplot2::ggplot(plot_data,
+                  ggplot2::aes(x = x, y = y, group = id, colour = type)) + # nolint
     ggplot2::geom_polygon(fill = NA, size = 0.5) +
     ggplot2::scale_color_manual(
       values = c("cell" = "#377eb8", "nucleus" = "#4daf4a")
     ) +
     ggplot2::coord_equal() +
-    ggplot2::theme_minimal() +
+    ggplot2::theme(strip.text.y = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   legend.position = "bottom") +
     ggplot2::labs(title = plot_title, x = "X coordinate", y = "Y coordinate")
 }
 
