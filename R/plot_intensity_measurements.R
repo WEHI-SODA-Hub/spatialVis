@@ -1,5 +1,3 @@
-library(dplyr)
-
 #' @title Plot intensity measurements for all channels from cell segmentation
 #' GeoJSON file
 #'

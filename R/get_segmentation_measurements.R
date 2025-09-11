@@ -1,5 +1,3 @@
-library(dplyr)
-
 #' @title Get segmentation data from GeoJSON file
 #'
 #' @description This function reads a GeoJSON file containing cell segmentation
@@ -17,6 +15,8 @@ library(dplyr)
 #' @importFrom dplyr %>%
 get_segmentation_measurements <- function(geojson_file,
                                           only_keep_cells = TRUE) {
+  stopifnot(file.exists(geojson_file))
+
   seg <- jsonlite::fromJSON(geojson_file)
 
   stopifnot(
