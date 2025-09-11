@@ -196,7 +196,8 @@ if (ncol(measurement_data) > 1) {
 ## Segmentation preview
 
 Plot of cell and nuclear geometries in two random 500x500 pixel regions
-containing at least 10 cell objects.
+containing at least 10 cell objects. Note that any MultiPolygon entities
+will be filtered out, so some objects may not be displayed.
 
 ```{r}
 geom_data <- get_segmentation_geometry(geojson_file)

@@ -21,5 +21,6 @@ list of geometries.
 This function reads a GeoJSON file containing cell segmentation
 geometry and returns a list with the coordinates of the cell and nucleus
 geometries. If `only_keep_cells` is TRUE, it will filter the data to only
-keep features with objectType "cell".
+keep features with objectType "cell". It also filters out multipolygon
+geometries, as they are not supported in the current plotting function.
 }
