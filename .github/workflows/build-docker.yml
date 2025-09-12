@@ -1,8 +1,6 @@
-name: Docker Image CI
+name: Docker Build and Push
 
 on:
-  push:
-    branches: [ ]
   release:
     types: [ published ]
 
