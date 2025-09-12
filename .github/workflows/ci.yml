@@ -22,11 +22,11 @@ jobs:
       with:
         context: .
         push: false
-        tags: spatialVis-test:latest
+        tags: spatialvis-test:latest
         load: true
 
     - name: Run R tests
       run: |
         docker run --rm -v ${{ github.workspace }}:/workspace \
-          -w /workspace spatialVis-test:latest Rscript -e \
+          -w /workspace spatialvis-test:latest Rscript -e \
           "library(spatialVis); testthat::test_dir('tests/testthat')"
