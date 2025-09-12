@@ -2,6 +2,8 @@
 title: "Segmentation Report"
 format:
     html:
+        embed-resources: true
+        standalone: true
         code-fold: true
         code-tools: true
         fig-width: 12
