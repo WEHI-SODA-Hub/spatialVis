@@ -8,7 +8,8 @@ plot_geometries(
   geom_data,
   area_width = 500,
   area_height = 500,
-  min_objects = 10
+  min_objects = 10,
+  image = NULL
 )
 }
 \arguments{
@@ -21,6 +22,8 @@ returned by `get_segmentation_geometry()`}
 
 \item{min_objects}{Minimum number of cell objects required in the area
 (default: 10)}
+
+\item{image}{Optional raster image to use as background (default: NULL)}
 }
 \value{
 A ggplot object containing the cell and nucleus geometries

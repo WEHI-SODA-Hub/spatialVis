@@ -22,7 +22,8 @@ Imports:
  uwot,
  umap,
  RANN,
- jsonlite
+ jsonlite,
+ terra
 Suggests:
  testthat,
  usethis

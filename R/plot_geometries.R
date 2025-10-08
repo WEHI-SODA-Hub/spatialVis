@@ -11,12 +11,14 @@
 #' @param area_height Height of the area to plot (default: 500)
 #' @param min_objects Minimum number of cell objects required in the area
 #' (default: 10)
+#' @param image Optional raster image to use as background (default: NULL)
 #'
 #' @return A ggplot object containing the cell and nucleus geometries
 #' @export
 #' @importFrom dplyr %>%
 plot_geometries <- function(geom_data, area_width = 500,
-                            area_height = 500, min_objects = 10) {
+                            area_height = 500, min_objects = 10,
+                            image = NULL) {
   stopifnot(
     "cell" %in% names(geom_data),
     "nucleus" %in% names(geom_data)
@@ -26,11 +28,11 @@ plot_geometries <- function(geom_data, area_width = 500,
   cells <- filter_objects_in_area(geom_data, bbox, type = "cell")
   nuclei <- filter_objects_in_area(geom_data, bbox, type = "nucleus")
 
-  plot_cell_geometries(cells, nuclei, bbox)
+  plot_cell_geometries(cells, nuclei, bbox, image)
 }
 
 # Function to plot cell and nucleus geometries
-plot_cell_geometries <- function(cells, nuclei, bbox) {
+plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
   plot_data <- data.frame()
 
   # Helper function to convert polygon coordinates to data frame
@@ -55,15 +57,50 @@ plot_cell_geometries <- function(cells, nuclei, bbox) {
     plot_data <- rbind(plot_data, nuc_df)
   }
 
+  if (!is.null(image)) {
+    img <- terra::rast(image) |> suppressWarnings()
+
+    n_layers <- terra::nlyr(img)
+    if (n_layers < 2) {
+      warning("Image must have at least 2 layers to plot nuclear and membrane ",
+              "channels. Skipping background image.")
+      image <- NULL
+    } else {
+      nuc <- terra::flip(img[[1]], "vertical") |>
+        terra::crop(terra::ext(bbox$xmin, bbox$xmax,
+                               bbox$ymin, bbox$ymax))
+
+      raster_df <- expand.grid(
+        x = seq(round(bbox$xmin), round(bbox$xmax), length.out = ncol(nuc)),
+        y = seq(round(bbox$ymin), round(bbox$ymax), length.out = nrow(nuc))
+      )
+      raster_df$value <- as.vector(nuc)
+    }
+  }
+
   plot_title <- paste0("X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
                        "Y: ", round(bbox$ymin), "-", round(bbox$ymax))
-  ggplot2::ggplot(plot_data,
-                  ggplot2::aes(x = x, y = y, group = id, colour = type)) + # nolint
+  geom_plot <- ggplot2::ggplot(plot_data,
+                  ggplot2::aes(x = x, y = y, group = id, colour = type)) # nolint
+
+  if (!is.null(image)) {
+    # If we have a background image, add it to the plot under the geometries
+    geom_plot <- geom_plot +
+      ggplot2::geom_raster(data = raster_df,
+                           ggplot2::aes(x = x, y = y, fill = value), # nolint
+                           inherit.aes = FALSE, alpha = 0.8)
+  }
+
+  geom_plot +
+    ggplot2::scale_fill_gradient(
+      low = "white", high = "black", guide = "none"
+    ) +
     ggplot2::geom_polygon(fill = NA, linewidth = 0.5) +
     ggplot2::scale_color_manual(
       values = c("cell" = "#377eb8", "nucleus" = "#4daf4a")
     ) +
     ggplot2::coord_equal() +
+    ggplot2::scale_y_reverse() +
     ggplot2::theme(strip.text.y = ggplot2::element_blank(),
                    panel.background = ggplot2::element_blank(),
                    legend.position = "bottom") +
