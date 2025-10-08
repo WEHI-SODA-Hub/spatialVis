@@ -23,7 +23,8 @@ Imports:
  umap,
  RANN,
  jsonlite,
- terra
+ terra,
+ grDevices
 Suggests:
  testthat,
  usethis

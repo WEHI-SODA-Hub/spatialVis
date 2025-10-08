@@ -23,7 +23,8 @@ returned by `get_segmentation_geometry()`}
 \item{min_objects}{Minimum number of cell objects required in the area
 (default: 10)}
 
-\item{image}{Optional raster image to use as background (default: NULL)}
+\item{image}{Optional raster image to use as background (default: NULL). The
+image should have at least 2 layers: nuclear and membrane in that order.}
 }
 \value{
 A ggplot object containing the cell and nucleus geometries

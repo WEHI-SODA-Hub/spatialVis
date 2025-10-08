@@ -11,7 +11,8 @@
 #' @param area_height Height of the area to plot (default: 500)
 #' @param min_objects Minimum number of cell objects required in the area
 #' (default: 10)
-#' @param image Optional raster image to use as background (default: NULL)
+#' @param image Optional raster image to use as background (default: NULL). The
+#' image should have at least 2 layers: nuclear and membrane in that order.
 #'
 #' @return A ggplot object containing the cell and nucleus geometries
 #' @export
@@ -67,27 +68,49 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
       image <- NULL
     } else {
       nuc <- terra::flip(img[[1]], "vertical") |>
-        terra::crop(terra::ext(bbox$xmin, bbox$xmax,
-                               bbox$ymin, bbox$ymax))
+        terra::crop(terra::ext(bbox$xmin, bbox$xmax, bbox$ymin, bbox$ymax))
+      mem <- terra::flip(img[[2]], "vertical") |>
+        terra::crop(terra::ext(bbox$xmin, bbox$xmax, bbox$ymin, bbox$ymax))
 
+      # Normalize values to 0-1 range
+      nuc_norm <- (nuc - terra::minmax(nuc)[1]) / diff(terra::minmax(nuc))
+      mem_norm <- (mem - terra::minmax(mem)[1]) / diff(terra::minmax(mem))
+
+      # Create RGB values with blue nuclei and green membranes
       raster_df <- expand.grid(
         x = seq(round(bbox$xmin), round(bbox$xmax), length.out = ncol(nuc)),
         y = seq(round(bbox$ymin), round(bbox$ymax), length.out = nrow(nuc))
       )
-      raster_df$value <- as.vector(nuc)
+      raster_df$red <- 0
+      raster_df$green <- as.vector(mem_norm)
+      raster_df$blue <- as.vector(nuc_norm)
+
+      # Use geom_raster with rgb()
+      raster_df$colour <- grDevices::rgb(
+        raster_df$red, raster_df$green, raster_df$blue
+      )
     }
   }
+
+  # Colours for plotting when no image is provided
+  cell_colour <- "#4daf4a"
+  nuc_colour <- "#377eb8"
+
 
   plot_title <- paste0("X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
                        "Y: ", round(bbox$ymin), "-", round(bbox$ymax))
   geom_plot <- ggplot2::ggplot(plot_data,
                   ggplot2::aes(x = x, y = y, group = id, colour = type)) # nolint
 
+  # If we have a background image, add it to the plot under the geometries
   if (!is.null(image)) {
-    # If we have a background image, add it to the plot under the geometries
+    # Tweak colours for visibility against image
+    cell_colour <- "#00BFFF"
+    nuc_colour <- "#FFFF00"
+
     geom_plot <- geom_plot +
       ggplot2::geom_raster(data = raster_df,
-                           ggplot2::aes(x = x, y = y, fill = value), # nolint
+                           ggplot2::aes(x = x, y = y, fill = I(colour)), # nolint
                            inherit.aes = FALSE, alpha = 0.8)
   }
 
@@ -97,7 +120,7 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
     ) +
     ggplot2::geom_polygon(fill = NA, linewidth = 0.5) +
     ggplot2::scale_color_manual(
-      values = c("cell" = "#377eb8", "nucleus" = "#4daf4a")
+      values = c("cell" = cell_colour, "nucleus" = nuc_colour)
     ) +
     ggplot2::coord_equal() +
     ggplot2::scale_y_reverse() +
