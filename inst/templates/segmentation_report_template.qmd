@@ -166,7 +166,7 @@ if (ncol(measurement_data) > 1) {
 
 Histogram/density plot of nucleus/cell ratio across cells.
 
-```{r}
+```{r, plot_nucleus_cell_ratio}
 measurement <- "Nucleus/Cell area ratio"
 col_idx <- which(stringr::str_detect(colnames(measurement_data),
                                      stringr::fixed(measurement)))
@@ -205,10 +205,11 @@ Plot of cell and nuclear geometries in two random 500x500 pixel regions
 containing at least 10 cell objects. Note that any MultiPolygon entities
 will be filtered out, so some objects may not be displayed.
 
-```{r}
+```{r, segmentation_preview}
 geom_data <- get_segmentation_geometry(geojson_file)
 min_objects <- 10
 image <- NULL
+size <- 500
 
 if (file.exists(image_file)) {
   image <- image_file
@@ -216,8 +217,20 @@ if (file.exists(image_file)) {
 
 # Use tryCatch here as random selection of area may fail
 tryCatch({
-  p1 <- plot_geometries(geom_data, min_objects = min_objects, image = image)
-  p2 <- plot_geometries(geom_data, min_objects = min_objects, image = image)
+  p1 <- plot_geometries(
+    geom_data,
+    min_objects = min_objects,
+    image = image,
+    area_width = size,
+    area_height = size
+  )
+  p2 <- plot_geometries(
+    geom_data,
+    min_objects = min_objects,
+    image = image,
+    area_width = size,
+    area_height = size
+  )
   gridExtra::grid.arrange(p1, p2, ncol = 2)
 }, error = function(e) {
   cat("An error occurred:", conditionMessage(e), "\n")

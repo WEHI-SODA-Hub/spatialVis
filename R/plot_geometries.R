@@ -84,6 +84,11 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
       nuc_norm <- (nuc - terra::minmax(nuc)[1]) / diff(terra::minmax(nuc))
       mem_norm <- (mem - terra::minmax(mem)[1]) / diff(terra::minmax(mem))
 
+      # Apply gamma correction for better visibility
+      gamma <- 0.5
+      nuc_norm <- nuc_norm ^ gamma
+      mem_norm <- mem_norm ^ gamma
+
       # Create RGB values with nuclei and membrane in green and blue channels
       raster_df <- expand.grid(
         x = seq(round(xmin), round(xmax), length.out = ncol(nuc)),
