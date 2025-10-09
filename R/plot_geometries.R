@@ -26,8 +26,10 @@ plot_geometries <- function(geom_data, area_width = 500,
   )
 
   bbox <- get_random_bbox(geom_data, area_width, area_height, min_objects)
-  cells <- filter_objects_in_area(geom_data, bbox, type = "cell")
-  nuclei <- filter_objects_in_area(geom_data, bbox, type = "nucleus")
+  cell_ids_in_area <- get_objects_in_area(geom_data, bbox, type = "cell")
+
+  cells <- geom_data$cell[cell_ids_in_area]
+  nuclei <- geom_data$nucleus[cell_ids_in_area]
 
   plot_cell_geometries(cells, nuclei, bbox, image)
 }
@@ -58,6 +60,12 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
     plot_data <- rbind(plot_data, nuc_df)
   }
 
+  # Get plot limits which are likely larger than the bounding box
+  xmin <- min(plot_data$x)
+  xmax <- max(plot_data$x)
+  ymin <- min(plot_data$y)
+  ymax <- max(plot_data$y)
+
   if (!is.null(image)) {
     img <- terra::rast(image) |> suppressWarnings()
 
@@ -68,22 +76,22 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
       image <- NULL
     } else {
       nuc <- terra::flip(img[[1]], "vertical") |>
-        terra::crop(terra::ext(bbox$xmin, bbox$xmax, bbox$ymin, bbox$ymax))
+        terra::crop(terra::ext(xmin, xmax, ymin, ymax))
       mem <- terra::flip(img[[2]], "vertical") |>
-        terra::crop(terra::ext(bbox$xmin, bbox$xmax, bbox$ymin, bbox$ymax))
+        terra::crop(terra::ext(xmin, xmax, ymin, ymax))
 
       # Normalize values to 0-1 range
       nuc_norm <- (nuc - terra::minmax(nuc)[1]) / diff(terra::minmax(nuc))
       mem_norm <- (mem - terra::minmax(mem)[1]) / diff(terra::minmax(mem))
 
-      # Create RGB values with blue nuclei and green membranes
+      # Create RGB values with nuclei and membrane in green and blue channels
       raster_df <- expand.grid(
-        x = seq(round(bbox$xmin), round(bbox$xmax), length.out = ncol(nuc)),
-        y = seq(round(bbox$ymin), round(bbox$ymax), length.out = nrow(nuc))
+        x = seq(round(xmin), round(xmax), length.out = ncol(nuc)),
+        y = seq(round(ymin), round(ymax), length.out = nrow(nuc))
       )
       raster_df$red <- 0
-      raster_df$green <- as.vector(mem_norm)
-      raster_df$blue <- as.vector(nuc_norm)
+      raster_df$green <- as.vector(nuc_norm)
+      raster_df$blue <- as.vector(mem_norm)
 
       # Use geom_raster with rgb()
       raster_df$colour <- grDevices::rgb(
@@ -95,13 +103,12 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
   # Colours for plotting when no image is provided
   cell_colour <- "#4daf4a"
   nuc_colour <- "#377eb8"
-
-
-  plot_title <- paste0("X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
+  plot_title <- paste0("Objects overlapping area\n",
+                       "X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
                        "Y: ", round(bbox$ymin), "-", round(bbox$ymax))
+
   geom_plot <- ggplot2::ggplot(plot_data,
                   ggplot2::aes(x = x, y = y, group = id, colour = type)) # nolint
-
   # If we have a background image, add it to the plot under the geometries
   if (!is.null(image)) {
     # Tweak colours for visibility against image
@@ -113,7 +120,6 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
                            ggplot2::aes(x = x, y = y, fill = I(colour)), # nolint
                            inherit.aes = FALSE, alpha = 0.8)
   }
-
   geom_plot +
     ggplot2::scale_fill_gradient(
       low = "white", high = "black", guide = "none"
@@ -196,9 +202,9 @@ get_random_bbox <- function(geom_data,
        max_attempts, " attempts")
 }
 
-# Function to filter objects within area
-filter_objects_in_area <- function(geom_data, area_bbox, type = "cell") {
-  filtered_features <- list()
+# Get object IDs within area bounding box
+get_objects_in_area <- function(geom_data, area_bbox, type = "cell") {
+  object_ids <- c()
   coords <- list()
 
   if (type == "cell") {
@@ -218,10 +224,8 @@ filter_objects_in_area <- function(geom_data, area_bbox, type = "cell") {
           bb$xmin <= area_bbox$xmax &&
           bb$ymax >= area_bbox$ymin &&
           bb$ymin <= area_bbox$ymax) {
-      filtered_features <- append(filtered_features,
-                                  list(points),
-                                  length(filtered_features))
+      object_ids <- c(object_ids, i)
     }
   }
-  filtered_features
+  object_ids
 }
