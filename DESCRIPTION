@@ -22,7 +22,9 @@ Imports:
  uwot,
  umap,
  RANN,
- jsonlite
+ jsonlite,
+ terra,
+ grDevices
 Suggests:
  testthat,
  usethis
