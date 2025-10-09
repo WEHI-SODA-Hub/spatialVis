@@ -75,10 +75,10 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
               "channels. Skipping background image.")
       image <- NULL
     } else {
-      nuc <- terra::flip(img[[1]], "vertical") |>
-        terra::crop(terra::ext(xmin, xmax, ymin, ymax))
-      mem <- terra::flip(img[[2]], "vertical") |>
-        terra::crop(terra::ext(xmin, xmax, ymin, ymax))
+      nuc <- terra::crop(img[[1]], terra::ext(xmin, xmax, ymin, ymax)) |>
+        terra::flip("vertical")
+      mem <- terra::crop(img[[2]], terra::ext(xmin, xmax, ymin, ymax)) |>
+        terra::flip("vertical")
 
       # Normalize values to 0-1 range
       nuc_norm <- (nuc - terra::minmax(nuc)[1]) / diff(terra::minmax(nuc))
@@ -125,6 +125,13 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
       low = "white", high = "black", guide = "none"
     ) +
     ggplot2::geom_polygon(fill = NA, linewidth = 0.5) +
+    ggplot2::geom_rect(
+      ggplot2::aes(
+        xmin = bbox$xmin, xmax = bbox$xmax,
+        ymin = bbox$ymin, ymax = bbox$ymax
+      ),
+      fill = NA, color = "pink", linewidth = 1
+    ) +
     ggplot2::scale_color_manual(
       values = c("cell" = cell_colour, "nucleus" = nuc_colour)
     ) +
