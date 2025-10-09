@@ -81,8 +81,10 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
         terra::flip("vertical")
 
       # Normalize values to 0-1 range
-      nuc_norm <- (nuc - terra::minmax(nuc)[1]) / diff(terra::minmax(nuc))
-      mem_norm <- (mem - terra::minmax(mem)[1]) / diff(terra::minmax(mem))
+      nuc_minmax <- terra::minmax(nuc)
+      mem_minmax <- terra::minmax(mem)
+      nuc_norm <- (nuc - nuc_minmax[1]) / diff(nuc_minmax)
+      mem_norm <- (mem - mem_minmax[1]) / diff(mem_minmax)
 
       # Apply gamma correction for better visibility
       gamma <- 0.5
@@ -124,19 +126,18 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
       ggplot2::geom_raster(data = raster_df,
                            ggplot2::aes(x = x, y = y, fill = I(colour)), # nolint
                            inherit.aes = FALSE, alpha = 0.8)
+  } else {
+    geom_plot <- geom_plot + ggplot2::scale_fill_gradient(
+      low = "white", high = "black", guide = "none"
+    )
   }
   geom_plot +
-    ggplot2::scale_fill_gradient(
-      low = "white", high = "black", guide = "none"
-    ) +
     ggplot2::geom_polygon(fill = NA, linewidth = 0.5) +
-    ggplot2::geom_rect(
-      ggplot2::aes(
-        xmin = bbox$xmin, xmax = bbox$xmax,
-        ymin = bbox$ymin, ymax = bbox$ymax
-      ),
-      fill = NA, color = "pink", linewidth = 1
-    ) +
+    ggplot2::annotate("rect",
+                      xmin = bbox$xmin, xmax = bbox$xmax,
+                      ymin = bbox$ymin, ymax = bbox$ymax,
+                      alpha = 0.3, fill = NA, linewidth = 1,
+                      colour = "pink") +
     ggplot2::scale_color_manual(
       values = c("cell" = cell_colour, "nucleus" = nuc_colour)
     ) +
