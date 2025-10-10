@@ -11,26 +11,31 @@
 #' @param area_height Height of the area to plot (default: 500)
 #' @param min_objects Minimum number of cell objects required in the area
 #' (default: 10)
+#' @param image Optional raster image to use as background (default: NULL). The
+#' image should have at least 2 layers: nuclear and membrane in that order.
 #'
 #' @return A ggplot object containing the cell and nucleus geometries
 #' @export
 #' @importFrom dplyr %>%
 plot_geometries <- function(geom_data, area_width = 500,
-                            area_height = 500, min_objects = 10) {
+                            area_height = 500, min_objects = 10,
+                            image = NULL) {
   stopifnot(
     "cell" %in% names(geom_data),
     "nucleus" %in% names(geom_data)
   )
 
   bbox <- get_random_bbox(geom_data, area_width, area_height, min_objects)
-  cells <- filter_objects_in_area(geom_data, bbox, type = "cell")
-  nuclei <- filter_objects_in_area(geom_data, bbox, type = "nucleus")
+  cell_ids_in_area <- get_objects_in_area(geom_data, bbox, type = "cell")
 
-  plot_cell_geometries(cells, nuclei, bbox)
+  cells <- geom_data$cell[cell_ids_in_area]
+  nuclei <- geom_data$nucleus[cell_ids_in_area]
+
+  plot_cell_geometries(cells, nuclei, bbox, image)
 }
 
 # Function to plot cell and nucleus geometries
-plot_cell_geometries <- function(cells, nuclei, bbox) {
+plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
   plot_data <- data.frame()
 
   # Helper function to convert polygon coordinates to data frame
@@ -55,15 +60,89 @@ plot_cell_geometries <- function(cells, nuclei, bbox) {
     plot_data <- rbind(plot_data, nuc_df)
   }
 
-  plot_title <- paste0("X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
+  # Get plot limits which are likely larger than the bounding box
+  xmin <- min(plot_data$x)
+  xmax <- max(plot_data$x)
+  ymin <- min(plot_data$y)
+  ymax <- max(plot_data$y)
+
+  if (!is.null(image)) {
+    img <- terra::rast(image) |> suppressWarnings()
+
+    n_layers <- terra::nlyr(img)
+    if (n_layers < 2) {
+      warning("Image must have at least 2 layers to plot nuclear and membrane ",
+              "channels. Skipping background image.")
+      image <- NULL
+    } else {
+      nuc <- terra::crop(img[[1]], terra::ext(xmin, xmax, ymin, ymax)) |>
+        terra::flip("vertical")
+      mem <- terra::crop(img[[2]], terra::ext(xmin, xmax, ymin, ymax)) |>
+        terra::flip("vertical")
+
+      # Normalize values to 0-1 range
+      nuc_minmax <- terra::minmax(nuc)
+      mem_minmax <- terra::minmax(mem)
+      nuc_norm <- (nuc - nuc_minmax[1]) / diff(nuc_minmax)
+      mem_norm <- (mem - mem_minmax[1]) / diff(mem_minmax)
+
+      # Apply gamma correction for better visibility
+      gamma <- 0.5
+      nuc_norm <- nuc_norm ^ gamma
+      mem_norm <- mem_norm ^ gamma
+
+      # Create RGB values with nuclei and membrane in green and blue channels
+      raster_df <- expand.grid(
+        x = seq(round(xmin), round(xmax), length.out = ncol(nuc)),
+        y = seq(round(ymin), round(ymax), length.out = nrow(nuc))
+      )
+      raster_df$red <- 0
+      raster_df$green <- as.vector(nuc_norm)
+      raster_df$blue <- as.vector(mem_norm)
+
+      # Use geom_raster with rgb()
+      raster_df$colour <- grDevices::rgb(
+        raster_df$red, raster_df$green, raster_df$blue
+      )
+    }
+  }
+
+  # Colours for plotting when no image is provided
+  cell_colour <- "#4daf4a"
+  nuc_colour <- "#377eb8"
+  plot_title <- paste0("Objects overlapping area\n",
+                       "X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
                        "Y: ", round(bbox$ymin), "-", round(bbox$ymax))
-  ggplot2::ggplot(plot_data,
-                  ggplot2::aes(x = x, y = y, group = id, colour = type)) + # nolint
+
+  geom_plot <- ggplot2::ggplot(plot_data,
+                  ggplot2::aes(x = x, y = y, group = id, colour = type)) # nolint
+  # If we have a background image, add it to the plot under the geometries
+  if (!is.null(image)) {
+    # Tweak colours for visibility against image
+    cell_colour <- "#00BFFF"
+    nuc_colour <- "#FFFF00"
+
+    geom_plot <- geom_plot +
+      ggplot2::geom_raster(data = raster_df,
+                           ggplot2::aes(x = x, y = y, fill = I(colour)), # nolint
+                           inherit.aes = FALSE, alpha = 0.8)
+  } else {
+    geom_plot <- geom_plot + ggplot2::scale_fill_gradient(
+      low = "white", high = "black", guide = "none"
+    )
+  }
+  geom_plot +
     ggplot2::geom_polygon(fill = NA, linewidth = 0.5) +
+    ggplot2::annotate("rect",
+                      xmin = bbox$xmin, xmax = bbox$xmax,
+                      ymin = bbox$ymin, ymax = bbox$ymax,
+                      alpha = 0.3, fill = NA, linewidth = 1,
+                      colour = "pink") +
     ggplot2::scale_color_manual(
-      values = c("cell" = "#377eb8", "nucleus" = "#4daf4a")
+      values = c("cell" = cell_colour, "nucleus" = nuc_colour)
     ) +
     ggplot2::coord_equal() +
+    ggplot2::scale_y_reverse() +
     ggplot2::theme(strip.text.y = ggplot2::element_blank(),
                    panel.background = ggplot2::element_blank(),
                    legend.position = "bottom") +
@@ -136,9 +215,9 @@ get_random_bbox <- function(geom_data,
        max_attempts, " attempts")
 }
 
-# Function to filter objects within area
-filter_objects_in_area <- function(geom_data, area_bbox, type = "cell") {
-  filtered_features <- list()
+# Get object IDs within area bounding box
+get_objects_in_area <- function(geom_data, area_bbox, type = "cell") {
+  object_ids <- c()
   coords <- list()
 
   if (type == "cell") {
@@ -158,10 +237,8 @@ filter_objects_in_area <- function(geom_data, area_bbox, type = "cell") {
           bb$xmin <= area_bbox$xmax &&
           bb$ymax >= area_bbox$ymin &&
           bb$ymin <= area_bbox$ymax) {
-      filtered_features <- append(filtered_features,
-                                  list(points),
-                                  length(filtered_features))
+      object_ids <- c(object_ids, i)
     }
   }
-  filtered_features
+  object_ids
 }
