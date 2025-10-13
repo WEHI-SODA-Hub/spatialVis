@@ -37,23 +37,27 @@ get_segmentation_geometry <- function(geojson_file,
 
   is_polygon <- seg$features$geometry$type == "Polygon" &
     seg$features$nucleusGeometry$type == "Polygon"
+  has_dims <- sapply(geom_data$cell, function(x) {
+    !is.null(dim(x))
+  })
 
+  n_geom <- length(geom_data$cell)
   if (only_keep_cells) {
     # Keep only object type cells with polygon geometries
     is_cell <- seg$features$properties$objectType == "cell"
-    keep <- is_polygon & is_cell
+    keep <- is_polygon & is_cell & has_dims
 
     geom_data$cell <- geom_data$cell[keep]
     geom_data$nucleus <- geom_data$nucleus[keep]
   } else {
     # Just filter out non-polygon geometries
-    geom_data$cell <- geom_data$cell[is_polygon]
-    geom_data$nucleus <- geom_data$nucleus[is_polygon]
+    geom_data$cell <- geom_data$cell[is_polygon & has_dims]
+    geom_data$nucleus <- geom_data$nucleus[is_polygon & has_dims]
   }
 
   message(paste0(
-    "Filtered out ", sum(!is_polygon, na.rm = TRUE),
-    " non-polygon geometries.\n",
+    "Filtered out ", n_geom - length(geom_data$cell),
+    " geometries.\n",
     "Final number of cell geometries: ", length(geom_data$cell)
   ))
 

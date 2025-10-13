@@ -1,7 +1,7 @@
 Package: spatialVis
 Type: Package
 Title: Plots and spatial analysis for MIBI
-Version: 0.0.1.0
+Version: 0.1.6.0
 RoxygenNote: 7.3.2
 Encoding: UTF-8
 Imports:
