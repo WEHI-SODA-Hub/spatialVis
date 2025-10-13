@@ -61,10 +61,10 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
   }
 
   # Get plot limits which are likely larger than the bounding box
-  xmin <- min(plot_data$x)
-  xmax <- max(plot_data$x)
-  ymin <- min(plot_data$y)
-  ymax <- max(plot_data$y)
+  xmin <- min(c(plot_data$x, bbox$xmin))
+  xmax <- max(c(plot_data$x, bbox$xmax))
+  ymin <- min(c(plot_data$y, bbox$ymin))
+  ymax <- max(c(plot_data$y, bbox$ymax))
 
   if (!is.null(image)) {
     img <- terra::rast(image) |> suppressWarnings()
