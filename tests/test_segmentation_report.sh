@@ -6,13 +6,17 @@ Rscript -e "spatialVis::copy_report_template(
     output_dir = '.',
     overwrite = TRUE
 )"
+
+curl -L -O https://github.com/WEHI-SODA-Hub/spatialproteomics/raw/refs/heads/main/tests/data/mesmer/test_data.tiff
+
 sample=Test
 quarto render segmentation_report_template.qmd \
     --to html \
     --no-cache \
-    --output cellpose_report.html \
+    --output segmentation_report_cellpose.html \
     -P sample_name:$sample \
     -P geojson_file:inst/extdata/segmentation.geojson \
+    -P image_file:test_data.tiff \
     -P nuclear_channel:"Channel 1" \
     -P membrane_channels:"Channel 2" \
     -P run_cellpose:true \
@@ -26,9 +30,10 @@ quarto render segmentation_report_template.qmd \
 quarto render segmentation_report_template.qmd \
     --to html \
     --no-cache \
-    --output mesmer_report.html \
+    --output segmentation_report_mesmer.html \
     -P sample_name:$sample \
     -P geojson_file:inst/extdata/segmentation.geojson \
+    -P image_file:test_data.tiff \
     -P nuclear_channel:"Channel 1" \
     -P membrane_channels:"Channel 2" \
     -P run_mesmer:true \
@@ -40,3 +45,5 @@ quarto render segmentation_report_template.qmd \
     -P mesmer_remove_border_cells:true \
     -P mesmer_pixel_expansion:3 \
     -P mesmer_padding:0
+
+rm test_data.tiff

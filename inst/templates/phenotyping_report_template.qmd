@@ -2,8 +2,12 @@
 title: "Spatial Analysis Report"
 format:
     html:
+        embed-resources: true
+        standalone: true
         code-fold: true
         code-tools: true
+        fig-width: 12
+        fig-height: 8
 params:
     hierarchy_file: "inst/extdata/hierarchy.yaml"
     expression_file: "data-raw/simulated.csv"
@@ -277,4 +281,3 @@ for (meta_col in plot_metas) {
 outfile <- paste0(sample_name, ".rds")
 saveRDS(spe, outfile, compress = "xz")
 ```
-
