@@ -31,17 +31,8 @@ plot_intensity_measurements <- function(measurement_data,
   )
 
   # Find measurement columns for all compartments and channels
-  measurements <- paste(compartments, calculation, sep = ": ")
-  col_idxs <- lapply(measurements, function(measurement) {
-    col_idx <- which(stringr::str_detect(colnames(measurement_data),
-                                         stringr::fixed(measurement)))
-    if (length(col_idx) == 0) {
-      warning(paste("No measurements found for", measurement))
-    }
-    col_idx
-  }) %>%
-    unlist()
-
+  col_idxs <- which(stringr::str_detect(colnames(measurement_data),
+                                        stringr::fixed(calculation)))
   if (length(col_idxs) == 0) {
     stop("No measurements found in data")
   }
@@ -55,6 +46,16 @@ plot_intensity_measurements <- function(measurement_data,
     tidyr::separate(measurement, into = c("channel", "compartment", #nolint
                                           "calculation"),
                     sep = ": ", extra = "merge", fill = "right")
+
+  # Check whether channel and comparment columns are correct
+  # QuPath <0.6 uses channel: compartment: calculation, while QuPath >=0.6 uses
+  # compartment: channel: calculation
+  if (!all(df$compartment %in% compartments)) {
+    df <- df %>%
+      dplyr::rename(temp = channel) %>%  # nolint
+      dplyr::rename(channel = compartment) %>%  # nolint
+      dplyr::rename(compartment = temp)  # nolint
+  }
 
   # Calculate percentile to set x-axis limits
   lower_limit <- quantile(df$intensity, percentiles[1], na.rm = TRUE)
