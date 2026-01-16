@@ -47,7 +47,7 @@ plot_intensity_measurements <- function(measurement_data,
                                           "calculation"),
                     sep = ": ", extra = "merge", fill = "right")
 
-  # Check whether channel and comparment columns are correct
+  # Check whether channel and compartment columns are correct
   # QuPath <0.6 uses channel: compartment: calculation, while QuPath >=0.6 uses
   # compartment: channel: calculation
   if (!all(df$compartment %in% compartments)) {
@@ -56,6 +56,11 @@ plot_intensity_measurements <- function(measurement_data,
       dplyr::rename(channel = compartment) %>%  # nolint
       dplyr::rename(compartment = temp)  # nolint
   }
+  # Remove any rows missing calculation values
+  df <- df %>%
+    dplyr::filter(compartment %in% compartments) %>%  # nolint
+    dplyr::filter(calculation == !!calculation) %>%  # nolint
+    dplyr::filter(!is.na(intensity))  # nolint
 
   # Calculate percentile to set x-axis limits
   lower_limit <- quantile(df$intensity, percentiles[1], na.rm = TRUE)
