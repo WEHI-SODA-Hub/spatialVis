@@ -7,7 +7,10 @@ Rscript -e "spatialVis::copy_report_template(
     overwrite = TRUE
 )"
 
-curl -L -O https://github.com/WEHI-SODA-Hub/spatialproteomics/raw/refs/heads/main/tests/data/mesmer/test_data.tiff
+if [ ! -f test_data.tiff ]; then
+  echo "Downloading test data..."
+  curl -L -O https://github.com/WEHI-SODA-Hub/spatialproteomics/raw/refs/heads/main/tests/data/mesmer/test_data.tiff
+fi
 
 sample=Test
 quarto render segmentation_report_template.qmd \
@@ -45,5 +48,3 @@ quarto render segmentation_report_template.qmd \
     -P mesmer_remove_border_cells:true \
     -P mesmer_pixel_expansion:3 \
     -P mesmer_padding:0
-
-rm test_data.tiff

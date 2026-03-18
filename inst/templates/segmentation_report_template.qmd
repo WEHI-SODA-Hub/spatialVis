@@ -136,6 +136,9 @@ Number of detected cells.
 
 ```{r, segmentation_counts}
 measurement_data <- get_segmentation_measurements(geojson_file)
+if (nrow(measurement_data) == 0) {
+  stop("No cells found in GeoJSON file.")
+}
 
 object_count <- table(measurement_data$objectType) |> data.frame()
 colnames(object_count) <- c("Object", "Count")
