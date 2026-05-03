@@ -39,9 +39,29 @@ plot_compartment_measurements <- function(measurement_data,
     dplyr::select(measurement_colname) %>% # nolint
     unlist()
 
-  # Extract all measurements above from the data
-  col_found <- sapply(names(measurement_data),
-                      function(x) any(startsWith(x, measurements)))
+  measurement_regexes <- vapply(
+    measurements,
+    function(measurement) {
+      escaped_measurement <- measurement
+      for (special_character in c("\\", ".", "|", "(", ")", "[", "]",
+                                  "{", "}", "^", "$", "*", "+", "?")) {
+        escaped_measurement <- gsub(
+          special_character,
+          paste0("\\\\", special_character),
+          escaped_measurement,
+          fixed = TRUE
+        )
+      }
+      paste0("^", escaped_measurement, "(?:$|\\s)")
+    },
+    character(1)
+  )
+  col_found <- vapply(names(measurement_data), function(measurement_name) {
+    any(stringr::str_detect(
+      measurement_name,
+      stringr::regex(measurement_regexes)
+    ))
+  }, logical(1))
 
   # Format dataframe for plotting
   df <- measurement_data %>%

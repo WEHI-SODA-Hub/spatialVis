@@ -10,7 +10,8 @@ summarise_segmentation_stats(
   compartment_measurements = c("Area", "Length", "Circularity", "Solidity",
     "Max diameter", "Min diameter"),
   other_measurements = c("Nucleus/Cell area ratio"),
-  summary_funcs = list(Mean = mean, Median = median)
+  summary_funcs = list(Mean = mean, Median = median),
+  keep_extra_measurements = FALSE
 )
 }
 \arguments{
@@ -27,7 +28,9 @@ summarise (default: c("Nucleus/Cell area ratio"))}
 \item{summary_funcs}{List of functions to summarise the measurements
 (default: list(Mean = mean, Median = median))}
 
-\item{geojson_file}{Path to the GeoJSON file containing segmentation data}
+\item{keep_extra_measurements}{Logical indicating whether to summarise
+additional percentile and erosion/expansion-bin measurements when present
+(default: FALSE). Neighbour-derived measurements are always excluded.}
 }
 \value{
 A data.frame object
@@ -36,4 +39,8 @@ A data.frame object
 Take segmentation measurements and summarise statistics,
 returning an output table. If measurements are not available, the function
 will return only the cell counts.
+}
+\details{
+Percentile and erosion/expansion-bin measurements are excluded by
+default.
 }
