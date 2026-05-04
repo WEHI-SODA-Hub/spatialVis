@@ -4,7 +4,11 @@
 \alias{get_segmentation_measurements}
 \title{Get segmentation data from GeoJSON file}
 \usage{
-get_segmentation_measurements(geojson_file, only_keep_cells = TRUE)
+get_segmentation_measurements(
+  geojson_file,
+  only_keep_cells = TRUE,
+  keep_extra_measurements = FALSE
+)
 }
 \arguments{
 \item{geojson_file}{Path to the GeoJSON file containing segmentation data}
@@ -12,6 +16,10 @@ get_segmentation_measurements(geojson_file, only_keep_cells = TRUE)
 \item{only_keep_cells}{Logical indicating whether to filter the data to
 only keep cells (default: TRUE). If TRUE, only features with objectType
 "cell" will be kept.}
+
+\item{keep_extra_measurements}{Logical indicating whether to keep additional
+percentile, erosion/expansion-bin, and neighbour-derived measurements
+(default: FALSE).}
 }
 \value{
 A data.table object

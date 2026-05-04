@@ -30,9 +30,14 @@ plot_intensity_measurements <- function(measurement_data,
     percentiles[1] < percentiles[2]
   )
 
-  # Find measurement columns for all compartments and channels
-  col_idxs <- which(stringr::str_detect(colnames(measurement_data),
-                                        stringr::fixed(calculation)))
+  measurement_names <- colnames(measurement_data)
+  measurement_parts <- strsplit(measurement_names, ": ", fixed = TRUE)
+  col_idxs <- which(vapply(measurement_parts, function(parts) {
+    length(parts) == 3 &&
+      parts[2] %in% compartments &&
+      identical(parts[3], calculation)
+  }, logical(1)))
+
   if (length(col_idxs) == 0) {
     stop("No measurements found in data")
   }
@@ -47,15 +52,6 @@ plot_intensity_measurements <- function(measurement_data,
                                           "calculation"),
                     sep = ": ", extra = "merge", fill = "right")
 
-  # Check whether channel and compartment columns are correct
-  # QuPath <0.6 uses channel: compartment: calculation, while QuPath >=0.6 uses
-  # compartment: channel: calculation
-  if (!all(df$compartment %in% compartments)) {
-    df <- df %>%
-      dplyr::rename(temp = channel) %>%  # nolint
-      dplyr::rename(channel = compartment) %>%  # nolint
-      dplyr::rename(compartment = temp)  # nolint
-  }
   # Remove any rows missing calculation values
   df <- df %>%
     dplyr::filter(compartment %in% compartments) %>%  # nolint

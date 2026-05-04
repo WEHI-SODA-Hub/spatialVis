@@ -226,14 +226,14 @@ tryCatch({
     image = image,
     area_width = size,
     area_height = size
-  )
+  ) |> suppressWarnings()
   p2 <- plot_geometries(
     geom_data,
     min_objects = min_objects,
     image = image,
     area_width = size,
     area_height = size
-  )
+  ) |> suppressWarnings()
   gridExtra::grid.arrange(p1, p2, ncol = 2)
 }, error = function(e) {
   cat("An error occurred:", conditionMessage(e), "\n")

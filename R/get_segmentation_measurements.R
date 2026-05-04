@@ -9,12 +9,16 @@
 #' @param only_keep_cells Logical indicating whether to filter the data to
 #' only keep cells (default: TRUE). If TRUE, only features with objectType
 #' "cell" will be kept.
+#' @param keep_extra_measurements Logical indicating whether to keep additional
+#' percentile, erosion/expansion-bin, and neighbour-derived measurements
+#' (default: FALSE).
 #'
 #' @return A data.table object
 #' @export
 #' @importFrom dplyr %>%
 get_segmentation_measurements <- function(geojson_file,
-                                          only_keep_cells = TRUE) {
+                                          only_keep_cells = TRUE,
+                                          keep_extra_measurements = FALSE) {
   stopifnot(file.exists(geojson_file))
 
   seg <- jsonlite::fromJSON(geojson_file)
@@ -33,7 +37,8 @@ get_segmentation_measurements <- function(geojson_file,
   if ("measurements" %in% names(seg_properties)) {
     dt <- data.table::data.table(
       objectType = seg_properties$objectType,
-      seg_properties$measurements
+      seg_properties$measurements,
+      check.names = FALSE
     )
   } else {
     # If no measurements are available, we'll just get a data.table containing
@@ -44,5 +49,14 @@ get_segmentation_measurements <- function(geojson_file,
   if (only_keep_cells) {
     dt <- dplyr::filter(dt, objectType == "cell") # nolint
   }
+  if (!keep_extra_measurements && ncol(dt) > 1) {
+    extra_measurements <- vapply(
+      names(dt),
+      .is_extra_col,
+      logical(1)
+    )
+    dt <- dt[, names(dt)[!extra_measurements], with = FALSE]
+  }
+
   dt
 }
