@@ -30,3 +30,7 @@ following: "Cell", "Nucleus", "Cytoplasm", "Membrane".}
 Take segmentation measurements and plot intensity measurements
 for the specified compartments.
 }
+\details{
+Supports both legacy `Channel: Compartment: Calculation` and
+QuPath >0.6 `Compartment: Channel: Calculation` channel intensity names.
+}

@@ -1,3 +1,39 @@
+.pick_intensity_cols <- function(measurement_names, compartments, calculation) {
+  measurement_parts <- strsplit(measurement_names, ": ", fixed = TRUE)
+
+  legacy_cols <- which(vapply(measurement_parts, function(parts) {
+    length(parts) == 3 &&
+      parts[2] %in% compartments &&
+      identical(parts[3], calculation)
+  }, logical(1)))
+
+  qpath06_cols <- which(vapply(measurement_parts, function(parts) {
+    length(parts) == 3 &&
+      parts[1] %in% compartments &&
+      identical(parts[3], calculation)
+  }, logical(1)))
+
+  if (length(legacy_cols) > 0) {
+    return(list(indices = legacy_cols, layout = "legacy"))
+  }
+  if (length(qpath06_cols) > 0) {
+    return(list(indices = qpath06_cols, layout = "qpath06"))
+  }
+
+  NULL
+}
+
+.norm_intensity_names <- function(measurement_names, layout) {
+  if (identical(layout, "legacy")) {
+    return(measurement_names)
+  }
+
+  measurement_parts <- strsplit(measurement_names, ": ", fixed = TRUE)
+  vapply(measurement_parts, function(parts) {
+    paste(parts[2], parts[1], parts[3], sep = ": ")
+  }, character(1))
+}
+
 #' @title Plot intensity measurements for all channels from cell segmentation
 #' GeoJSON file
 #'
@@ -13,6 +49,8 @@
 #' @param percentiles Numeric vector of length 2 specifying the lower and upper
 #' percentiles to use for x-axis limits (default: c(0.05, 0.95)). Must be
 #' between 0 and 1, and the first value must be less than the second value.
+#' @details Supports both legacy `Channel: Compartment: Calculation` and
+#' QuPath >0.6 `Compartment: Channel: Calculation` channel intensity names.
 #'
 #' @export
 #' @importFrom dplyr %>%
@@ -31,16 +69,21 @@ plot_intensity_measurements <- function(measurement_data,
   )
 
   measurement_names <- colnames(measurement_data)
-  measurement_parts <- strsplit(measurement_names, ": ", fixed = TRUE)
-  col_idxs <- which(vapply(measurement_parts, function(parts) {
-    length(parts) == 3 &&
-      parts[2] %in% compartments &&
-      identical(parts[3], calculation)
-  }, logical(1)))
+  intensity_cols <- .pick_intensity_cols(
+    measurement_names,
+    compartments,
+    calculation
+  )
 
-  if (length(col_idxs) == 0) {
-    stop("No measurements found in data")
+  if (is.null(intensity_cols)) {
+    stop("No intensity measurements found in data")
   }
+
+  col_idxs <- intensity_cols$indices
+  colnames(measurement_data)[col_idxs] <- .norm_intensity_names(
+    measurement_names[col_idxs],
+    intensity_cols$layout
+  )
 
   # Format dataframe for plotting
   df <- measurement_data[, col_idxs] %>% # nolint

@@ -1,4 +1,32 @@
-write_seg_measurements_geojson <- function(path) {
+write_seg_measurements_geojson <- function(path,
+                                          intensity_layout =
+                                            c("legacy", "qpath06")) {
+  intensity_layout <- match.arg(intensity_layout)
+
+  intensity_measurements_1 <- switch(
+    intensity_layout,
+    legacy = list(
+      "DAPI: Cell: Mean" = 110,
+      "DAPI: Nucleus: Mean" = 90
+    ),
+    qpath06 = list(
+      "Cell: DAPI: Mean" = 110,
+      "Nucleus: DAPI: Mean" = 90
+    )
+  )
+
+  intensity_measurements_2 <- switch(
+    intensity_layout,
+    legacy = list(
+      "DAPI: Cell: Mean" = 130,
+      "DAPI: Nucleus: Mean" = 100
+    ),
+    qpath06 = list(
+      "Cell: DAPI: Mean" = 130,
+      "Nucleus: DAPI: Mean" = 100
+    )
+  )
+
   geojson <- list(
     type = "FeatureCollection",
     features = list(
@@ -18,7 +46,7 @@ write_seg_measurements_geojson <- function(path) {
         ))),
         properties = list(
           objectType = "cell",
-          measurements = list(
+          measurements = c(list(
             "Cell: Area \u00b5m^2" = 10,
             "Cell: Length \u00b5m" = 20,
             "Cell: Circularity" = 0.5,
@@ -31,10 +59,10 @@ write_seg_measurements_geojson <- function(path) {
             "Nucleus: Solidity" = 0.85,
             "Nucleus: Max diameter \u00b5m" = 4,
             "Nucleus: Min diameter \u00b5m" = 2,
-            "Nucleus/Cell area ratio" = 0.4,
-            "DAPI: Cell: Mean" = 110,
-            "DAPI: Nucleus: Mean" = 90,
-            "Nucleus: DAPI: Mean" = 999,
+            "Nucleus/Cell area ratio" = 0.4
+          ),
+          intensity_measurements_1,
+          list(
             "DAPI: Cell: Percentile: 70.0" = 100,
             "DAPI: Nucleus: Percentile: 70.0" = 80,
             "Cell: ErosionBin_1: Area_px" = 40,
@@ -42,7 +70,7 @@ write_seg_measurements_geojson <- function(path) {
             "Cell: ExpansionBin_2: Depth_px" = 5,
             "Nucleus: ErosionBin_1: Area_px" = 20,
             "Neighbours: Mean: Cell: ExpansionBin_3: Area_px" = 4446
-          )
+          ))
         )
       ),
       list(
@@ -53,7 +81,7 @@ write_seg_measurements_geojson <- function(path) {
         ))),
         properties = list(
           objectType = "cell",
-          measurements = list(
+          measurements = c(list(
             "Cell: Area \u00b5m^2" = 14,
             "Cell: Length \u00b5m" = 24,
             "Cell: Circularity" = 0.7,
@@ -66,10 +94,10 @@ write_seg_measurements_geojson <- function(path) {
             "Nucleus: Solidity" = 0.87,
             "Nucleus: Max diameter \u00b5m" = 4.5,
             "Nucleus: Min diameter \u00b5m" = 2.5,
-            "Nucleus/Cell area ratio" = 0.43,
-            "DAPI: Cell: Mean" = 130,
-            "DAPI: Nucleus: Mean" = 100,
-            "Nucleus: DAPI: Mean" = 999,
+            "Nucleus/Cell area ratio" = 0.43
+          ),
+          intensity_measurements_2,
+          list(
             "DAPI: Cell: Percentile: 70.0" = 120,
             "DAPI: Nucleus: Percentile: 70.0" = 95,
             "Cell: ErosionBin_1: Area_px" = 50,
@@ -77,7 +105,7 @@ write_seg_measurements_geojson <- function(path) {
             "Cell: ExpansionBin_2: Depth_px" = 7,
             "Nucleus: ErosionBin_1: Area_px" = 24,
             "Neighbours: Mean: Cell: ExpansionBin_3: Area_px" = 5555
-          )
+          ))
         )
       )
     )
