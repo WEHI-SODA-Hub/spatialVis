@@ -171,8 +171,7 @@ Histogram/density plot of nucleus/cell ratio across cells.
 
 ```{r, plot_nucleus_cell_ratio}
 measurement <- "Nucleus/Cell area ratio"
-col_idx <- which(stringr::str_detect(colnames(measurement_data),
-                                     stringr::fixed(measurement)))
+col_idx <- col_idx <- which(colnames(measurement_data) == measurement)
 if (length(col_idx) > 0) {
   df <- data.frame(measurement = measurement,
                    value = measurement_data[[col_idx]])
