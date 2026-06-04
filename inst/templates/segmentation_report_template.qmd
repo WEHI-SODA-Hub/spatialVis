@@ -39,6 +39,7 @@ if (!requireNamespace("spatialVis", quietly = TRUE)) {
     devtools::install_github("WEHI-SODA-Hub/spatialVis")
 }
 library(spatialVis)
+library(dplyr)
 ```
 
 ```{r parse_args, include=FALSE}
@@ -76,6 +77,49 @@ mesmer_remove_border_cells <- as.logical(params$mesmer_remove_border_cells)
 mesmer_pixel_expansion <- params$mesmer_pixel_expansion
 mesmer_padding <- parse_value_arg(params$mesmer_padding)
 ```
+
+```{r detect_measurements, include=FALSE}
+# Helper to detect whether compartment/intensity measurement columns are present
+.detect_segmentation_measurements <- function(measurement_data,
+                                               compartments = c("Cell", "Nucleus"),
+                                               compartment_measurements = c("Area", "Length", "Circularity", "Solidity", "Max diameter", "Min diameter"),
+                                               intensity_calculations = c("Mean", "Median", "Min", "Max", "Std.Dev")) {
+  # Build expected compartment measurement names (e.g. "Cell: Area")
+  measurements <- tidyr::expand_grid(
+    compartment = compartments,
+    measurement = compartment_measurements
+  ) %>%
+    dplyr::mutate(measurement_colname = paste0(compartment, ": ", measurement)) %>%
+    dplyr::pull(measurement_colname)
+
+  # Escape regex-special characters and create regexes anchored at start
+  escape_regex <- function(x) {
+    escaped <- x
+    for (special_character in c("\\", ".", "|", "(", ")", "[", "]", "{", "}", "^", "$", "*", "+", "?")) {
+      escaped <- gsub(special_character, paste0("\\\\", special_character), escaped, fixed = TRUE)
+    }
+    escaped
+  }
+
+  measurement_regexes <- vapply(measurements, function(measurement) {
+    paste0("^", escape_regex(measurement), "(?:$|\\s)")
+  }, character(1))
+
+  has_compartment_measurements <- any(vapply(measurement_regexes, function(re) {
+    any(stringr::str_detect(colnames(measurement_data), stringr::regex(re)))
+  }, logical(1)))
+
+  # Intensity columns end with ": <Calculation>" where Calculation is one of intensity_calculations
+  intensity_re <- paste0(": (", paste(intensity_calculations, collapse = "|"), ")$")
+  has_intensity_measurements <- any(grepl(intensity_re, colnames(measurement_data)))
+
+  list(
+    has_compartment = has_compartment_measurements,
+    has_intensity = has_intensity_measurements
+  )
+}
+```
+
 
 ## Run parameters
 
@@ -148,9 +192,16 @@ knitr::kable(object_count, format = "markdown")
 Mean and median of measurements across all cells.
 
 ```{r, segmentation_stats}
-if (ncol(measurement_data) > 1) {
-  summary_table <- summarise_segmentation_stats(measurement_data)
-  knitr::kable(summary_table, format = "markdown")
+res <- .detect_segmentation_measurements(measurement_data)
+if (res$has_compartment) {
+  tryCatch({
+    summary_table <- summarise_segmentation_stats(measurement_data)
+    knitr::kable(summary_table, format = "markdown")
+  }, error = function(e) {
+    cat("No measurements found in GeoJSON file.")
+  })
+} else {
+  cat("No measurements found in GeoJSON file.")
 }
 ```
 
@@ -160,8 +211,14 @@ Box plots showing measurement distributions across nuclear and cellular
 compartments.
 
 ```{r, compartment_measurements}
-if (ncol(measurement_data) > 1) {
-  plot_compartment_measurements(measurement_data)
+if (res$has_compartment) {
+  tryCatch({
+    plot_compartment_measurements(measurement_data)
+  }, error = function(e) {
+    cat("No measurements found in GeoJSON file.")
+  })
+} else {
+  cat("No measurements found in GeoJSON file.")
 }
 ```
 
@@ -187,6 +244,8 @@ if (length(col_idx) > 0) {
                    axis.title.x = ggplot2::element_blank(),
                    strip.text.y = ggplot2::element_blank(),
                    panel.background = ggplot2::element_blank())
+} else {
+  cat("No nucleus/cell ratio measurements found in GeoJSON file.")
 }
 ```
 
@@ -196,8 +255,14 @@ Density plots of median intensity in the cell, cytoplasm, membrane and nuclear
 compartments.
 
 ```{r, channel_intensities}
-if (ncol(measurement_data) > 1) {
-  plot_intensity_measurements(measurement_data)
+if (res$has_intensity) {
+  tryCatch({
+    plot_intensity_measurements(measurement_data)
+  }, error = function(e) {
+    cat("No intensity measurements found in GeoJSON file.")
+  })
+} else {
+  cat("No intensity measurements found in GeoJSON file.")
 }
 ```
 
