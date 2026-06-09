@@ -69,16 +69,31 @@ summarise_segmentation_stats <- function(measurement_data,
                                          summary_funcs =
                                            list(Mean = mean, Median = median),
                                          keep_extra_measurements = FALSE) {
+  # Detect compartments
+  has_nuclei <- grepl("Nucleus", colnames(measurement_data)) |> any()
+  has_cells <- grepl("Cell", colnames(measurement_data)) |> any()
+  stopifnot(has_nuclei || has_cells)
+
+  if (!has_nuclei) {
+    compartments <- c("Cell")
+    message(paste("No nucleus measurements found in GeoJSON file.",
+                  "Summarising whole cell measurements only."))
+  } else if (!has_cells) {
+    compartments <- c("Nucleus")
+    message(paste("No cell measurements found in GeoJSON file.",
+                  "Summarising whole nucleus measurements only."))
+  }
+
   # Create list of measurements
   measurements <- tidyr::expand_grid(
     compartment = compartments,
     measurement = compartment_measurements
-  ) %>%
+  ) |>
     dplyr::mutate(measurement_colname = paste0(compartment, ": ", measurement) # nolint
-    ) %>%
+    ) %>% # nolint
     dplyr::select(measurement_colname) %>% # nolint
     unlist()
-  measurements <- c(measurements, other_measurements) %>% as.character()
+  measurements <- c(measurements, other_measurements) |> as.character()
 
   # Calculate stats on data
   summary_list <- list()
@@ -122,9 +137,10 @@ summarise_segmentation_stats <- function(measurement_data,
     }
   }
 
-  summary_df <- do.call(rbind, summary_list) %>%
-    as.data.frame() %>%
+  summary_df <- do.call(rbind, summary_list) |>
+    as.data.frame() %>% # nolint
     dplyr::mutate(Measurement = rownames(.)) %>% # nolint
+    dplyr::filter(!if_all(-Measurement, is.na)) %>% # nolint
     dplyr::select(Measurement, dplyr::everything()) # nolint
   rownames(summary_df) <- NULL
 

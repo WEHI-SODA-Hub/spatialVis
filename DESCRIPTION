@@ -2,7 +2,6 @@ Package: spatialVis
 Type: Package
 Title: Plots and spatial analysis for MIBI
 Version: 0.1.6.0
-RoxygenNote: 7.3.3
 Encoding: UTF-8
 Imports:
  yaml,
@@ -31,3 +30,4 @@ Suggests:
 Depends: 
     R (>= 3.5)
 LazyData: true
+Config/roxygen2/version: 8.0.0

@@ -4,7 +4,11 @@
 \alias{get_segmentation_geometry}
 \title{Get segmentation geometry from GeoJSON file}
 \usage{
-get_segmentation_geometry(geojson_file, only_keep_cells = TRUE)
+get_segmentation_geometry(
+  geojson_file,
+  only_keep_cells = TRUE,
+  nuclei_only = FALSE
+)
 }
 \arguments{
 \item{geojson_file}{Path to the GeoJSON file containing segmentation data}
@@ -12,14 +16,20 @@ get_segmentation_geometry(geojson_file, only_keep_cells = TRUE)
 \item{only_keep_cells}{Logical indicating whether to filter the data to
 only keep cells (default: TRUE). If TRUE, only features with objectType
 "cell" will be kept.}
+
+\item{nuclei_only}{Logical indicating whether to treat the primary geometry
+as nuclear geometry (default: FALSE). When TRUE, `geometry` coordinates are
+returned in the `nucleus` slot instead of `cell`.}
 }
 \value{
-A list with two elements: `cell` and `nucleus`, each containing a
-list of geometries.
+A list containing primary geometries in `cell` (default mode) or
+`nucleus` (`nuclei_only = TRUE`). In default mode, a secondary `nucleus`
+slot is included when `nucleusGeometry` is present.
 }
 \description{
 This function reads a GeoJSON file containing cell segmentation
 geometry and returns a list with the coordinates of the cell and nucleus
+geometries. If nuclear geometries are not present, it will only return cell
 geometries. If `only_keep_cells` is TRUE, it will filter the data to only
 keep features with objectType "cell". It also filters out multipolygon
 geometries, as they are not supported in the current plotting function.

@@ -29,13 +29,27 @@ plot_compartment_measurements <- function(measurement_data,
                             "Max diameter", "Min diameter"))
   )
 
+  has_nuclei <- grepl("Nucleus", colnames(measurement_data)) |> any()
+  has_cells <- grepl("Cell", colnames(measurement_data)) |> any()
+  stopifnot(has_nuclei || has_cells)
+
+  if (!has_nuclei) {
+    compartments <- c("Cell")
+    message(paste("No nucleus measurements found in GeoJSON file.",
+                  "Plotting whole cell measurements only."))
+  } else if (!has_cells) {
+    compartments <- c("Nucleus")
+    message(paste("No cell measurements found in GeoJSON file.",
+                  "Plotting whole nucleus measurements only."))
+  }
+
   # Create list of measurements
   measurements <- tidyr::expand_grid(
     compartment = compartments,
     measurement = measurements
-  ) %>%
+  ) |>
     dplyr::mutate(measurement_colname = paste0(compartment, ": ", measurement) # nolint
-    ) %>%
+    ) |>
     dplyr::select(measurement_colname) %>% # nolint
     unlist()
 
@@ -64,11 +78,11 @@ plot_compartment_measurements <- function(measurement_data,
   }, logical(1))
 
   # Format dataframe for plotting
-  df <- measurement_data %>%
+  df <- measurement_data %>%  # nolint
     dplyr::select(names(.)[col_found]) %>% #nolint
     tidyr::pivot_longer(dplyr::everything(),
                         names_to = "measurement",
-                        values_to = "value") %>%
+                        values_to = "value") |>
     tidyr::separate(measurement, into = c("compartment", "measurement"), #nolint
                     sep = ": ", extra = "merge", fill = "right")
 

@@ -11,6 +11,7 @@ format:
 params:
     sample_name: "sample"
     geojson_file: "inst/extdata/segmentation.geojson"
+    whole_cell_only: false
     nuclear_channel: ""
     membrane_channels: ""
     combine_method: ""
@@ -53,6 +54,7 @@ parse_value_arg <- function(arg) {
 sample_name <- params$sample_name
 geojson_file <- params$geojson_file
 stopifnot(file.exists(geojson_file))
+whole_cell_only <- as.logical(params$whole_cell_only)
 
 image_file <- params$image_file
 
@@ -171,6 +173,11 @@ if (run_cellpose) {
   params_table <- rbind(params_table, params_to_add)
 }
 
+params_table <- rbind(
+  params_table,
+  data.frame(Parameter = "Whole-cell only", Value = whole_cell_only)
+)
+
 knitr::kable(params_table, format = "markdown", col.names = c("Parameter", "Value"))
 ```
 
@@ -192,10 +199,18 @@ knitr::kable(object_count, format = "markdown")
 Mean and median of measurements across all cells.
 
 ```{r, segmentation_stats}
-res <- .detect_segmentation_measurements(measurement_data)
+compartments_to_use <- if (whole_cell_only) c("Cell") else c("Cell", "Nucleus")
+res <- .detect_segmentation_measurements(
+  measurement_data,
+  compartments = compartments_to_use
+)
 if (res$has_compartment) {
   tryCatch({
-    summary_table <- summarise_segmentation_stats(measurement_data)
+    summary_table <- summarise_segmentation_stats(
+      measurement_data,
+      compartments = compartments_to_use,
+      other_measurements = if (whole_cell_only) character(0) else c("Nucleus/Cell area ratio")
+    )
     knitr::kable(summary_table, format = "markdown")
   }, error = function(e) {
     cat("No measurements found in GeoJSON file.")
@@ -207,13 +222,16 @@ if (res$has_compartment) {
 
 ## Plot compartment measurements
 
-Box plots showing measurement distributions across nuclear and cellular
+Box plots showing measurement distributions across `r if (whole_cell_only) "cellular" else "nuclear and cellular"`
 compartments.
 
 ```{r, compartment_measurements}
 if (res$has_compartment) {
   tryCatch({
-    plot_compartment_measurements(measurement_data)
+    plot_compartment_measurements(
+      measurement_data,
+      compartments = compartments_to_use
+    )
   }, error = function(e) {
     cat("No measurements found in GeoJSON file.")
   })
@@ -224,40 +242,47 @@ if (res$has_compartment) {
 
 ## Plot Nucleus/Cell ratio
 
-Histogram/density plot of nucleus/cell ratio across cells.
+`r if (whole_cell_only) "Skipped when whole_cell_only is enabled." else "Histogram/density plot of nucleus/cell ratio across cells."`
 
 ```{r, plot_nucleus_cell_ratio}
-measurement <- "Nucleus/Cell area ratio"
-col_idx <- col_idx <- which(colnames(measurement_data) == measurement)
-if (length(col_idx) > 0) {
-  df <- data.frame(measurement = measurement,
-                   value = measurement_data[[col_idx]])
-
-  ggplot2::ggplot(data = df, ggplot2::aes(x = value)) +
-    ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
-                            binwidth = 0.05, colour = "black", fill = "white") +
-    ggplot2::geom_density() +
-    ggplot2::facet_wrap(~ measurement, scales = "free_y") +
-    ggplot2::ggtitle(measurement) +
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
-                   axis.text.x = ggplot2::element_text(angle = 90, hjust = 1),
-                   axis.title.x = ggplot2::element_blank(),
-                   strip.text.y = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_blank())
+if (whole_cell_only) {
+  cat("Skipped nucleus/cell ratio plot because whole_cell_only is enabled.")
 } else {
-  cat("No nucleus/cell ratio measurements found in GeoJSON file.")
+  measurement <- "Nucleus/Cell area ratio"
+  col_idx <- which(colnames(measurement_data) == measurement)
+  if (length(col_idx) > 0) {
+    df <- data.frame(measurement = measurement,
+                     value = measurement_data[[col_idx]])
+
+    ggplot2::ggplot(data = df, ggplot2::aes(x = value)) +
+      ggplot2::geom_histogram(ggplot2::aes(y = ggplot2::after_stat(density)),
+                              binwidth = 0.05, colour = "black", fill = "white") +
+      ggplot2::geom_density() +
+      ggplot2::facet_wrap(~ measurement, scales = "free_y") +
+      ggplot2::ggtitle(measurement) +
+      ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_text(angle = 90, hjust = 1),
+                     axis.title.x = ggplot2::element_blank(),
+                     strip.text.y = ggplot2::element_blank(),
+                     panel.background = ggplot2::element_blank())
+  } else {
+    cat("No nucleus/cell ratio measurements found in GeoJSON file.")
+  }
 }
 ```
 
 ## Channel intensities
 
-Density plots of median intensity in the cell, cytoplasm, membrane and nuclear
+Density plots of median intensity in the cell, cytoplasm, membrane and `r if (whole_cell_only) "cell-associated" else "nuclear"`
 compartments.
 
 ```{r, channel_intensities}
 if (res$has_intensity) {
   tryCatch({
-    plot_intensity_measurements(measurement_data)
+    plot_intensity_measurements(
+      measurement_data,
+      compartments = if (whole_cell_only) c("Cell", "Membrane") else c("Nucleus", "Cell", "Cytoplasm", "Membrane")
+    )
   }, error = function(e) {
     cat("No intensity measurements found in GeoJSON file.")
   })
@@ -268,12 +293,15 @@ if (res$has_intensity) {
 
 ## Segmentation preview
 
-Plot of cell and nuclear geometries in two random 500x500 pixel regions
+Plot of `r if (whole_cell_only) "cell" else "cell and nuclear"` geometries in two random 500x500 pixel regions
 containing at least 10 cell objects. Note that any MultiPolygon entities
 will be filtered out, so some objects may not be displayed.
 
 ```{r, segmentation_preview}
 geom_data <- get_segmentation_geometry(geojson_file)
+if (whole_cell_only && "nucleus" %in% names(geom_data)) {
+  geom_data$nucleus <- NULL
+}
 min_objects <- 10
 image <- NULL
 size <- 500

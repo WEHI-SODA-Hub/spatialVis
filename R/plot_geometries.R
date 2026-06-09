@@ -20,16 +20,34 @@
 plot_geometries <- function(geom_data, area_width = 500,
                             area_height = 500, min_objects = 10,
                             image = NULL) {
-  stopifnot(
-    "cell" %in% names(geom_data),
-    "nucleus" %in% names(geom_data)
+  has_cells <- "cell" %in% names(geom_data) && length(geom_data$cell) > 0
+  has_nuclei <- "nucleus" %in% names(geom_data) && length(geom_data$nucleus) > 0
+  stopifnot(has_cells || has_nuclei)
+
+  # Choose a base geometry type with usable geometries. Prefer cells.
+  base_type <- if (has_cells) "cell" else "nucleus"
+
+  bbox <- get_random_bbox(
+    geom_data, area_width, area_height, min_objects, geom_type = base_type
   )
+  object_ids_in_area <- get_objects_in_area(geom_data, bbox, type = base_type)
 
-  bbox <- get_random_bbox(geom_data, area_width, area_height, min_objects)
-  cell_ids_in_area <- get_objects_in_area(geom_data, bbox, type = "cell")
+  cells <- NULL
+  nuclei <- NULL
 
-  cells <- geom_data$cell[cell_ids_in_area]
-  nuclei <- geom_data$nucleus[cell_ids_in_area]
+  if (has_cells) {
+    cells <- geom_data$cell[object_ids_in_area]
+  } else {
+    message("No cell geometry found in GeoJSON file. ",
+            "Plotting nucleus geometries only.")
+  }
+
+  if (has_nuclei) {
+    nuclei <- geom_data$nucleus[object_ids_in_area]
+  } else {
+    message("No nucleus geometry found in GeoJSON file. ",
+            "Plotting cell geometries only.")
+  }
 
   plot_cell_geometries(cells, nuclei, bbox, image)
 }
@@ -48,16 +66,98 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
     )
   }
 
-  for (i in seq_along(cells)) {
-    points <- cells[[i]]
-    cell_df <- polygon_to_df(points, paste0("cell_", i), "cell")
-    plot_data <- rbind(plot_data, cell_df)
+  valid_polygon <- function(points) {
+    !is.null(points) &&
+      length(points) > 0 &&
+      !is.null(dim(points)) &&
+      length(dim(points)) == 3 &&
+      dim(points)[1] > 0 &&
+      dim(points)[3] >= 2
   }
 
-  for (i in seq_along(nuclei)) {
-    points <- nuclei[[i]]
-    nuc_df <- polygon_to_df(points, paste0("nucleus_", i), "nucleus")
-    plot_data <- rbind(plot_data, nuc_df)
+  if (!is.null(cells) && length(cells) > 0) {
+    for (i in seq_along(cells)) {
+      points <- cells[[i]]
+      # Skip NULL or empty entries
+      if (!valid_polygon(points)) next
+      cell_df <- polygon_to_df(points, paste0("cell_", i), "cell")
+      plot_data <- rbind(plot_data, cell_df)
+    }
+  }
+
+  if (!is.null(nuclei) && length(nuclei) > 0) {
+    for (i in seq_along(nuclei)) {
+      points <- nuclei[[i]]
+      if (!valid_polygon(points)) next
+      nuc_df <- polygon_to_df(points, paste0("nucleus_", i), "nucleus")
+      plot_data <- rbind(plot_data, nuc_df)
+    }
+  }
+
+  # If no polygon data available, return a blank plot with the bbox annotated
+  plot_title <- paste0("Objects overlapping area\n",
+                       "X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
+                       "Y: ", round(bbox$ymin), "-", round(bbox$ymax))
+
+  if (nrow(plot_data) == 0) {
+    p <- ggplot2::ggplot() +
+      ggplot2::annotate("rect",
+                        xmin = bbox$xmin, xmax = bbox$xmax,
+                        ymin = bbox$ymin, ymax = bbox$ymax,
+                        alpha = 0.3, fill = NA, linewidth = 1,
+                        colour = "pink") +
+      ggplot2::coord_equal() +
+      ggplot2::scale_y_reverse() +
+      ggplot2::theme(strip.text.y = ggplot2::element_blank(),
+                     panel.background = ggplot2::element_blank(),
+                     legend.position = "bottom") +
+      ggplot2::labs(title = plot_title, x = "X coordinate", y = "Y coordinate")
+
+    # If an image is provided, try to draw cropped background if possible
+    if (!is.null(image)) {
+      tryCatch({
+        img <- terra::rast(image) |> suppressWarnings()
+        if (terra::nlyr(img) >= 2) {
+          nuc <- terra::crop(
+            img[[1]],
+            terra::ext(bbox$xmin, bbox$xmax, bbox$ymin, bbox$ymax)
+          ) |> terra::flip("vertical")
+          mem <- terra::crop(
+            img[[2]], terra::ext(bbox$xmin, bbox$xmax, bbox$ymin, bbox$ymax)
+          ) |> terra::flip("vertical")
+
+          nuc_minmax <- terra::minmax(nuc)
+          mem_minmax <- terra::minmax(mem)
+          nuc_norm <- (nuc - nuc_minmax[1]) / diff(nuc_minmax)
+          mem_norm <- (mem - mem_minmax[1]) / diff(mem_minmax)
+          gamma <- 0.5
+          nuc_norm <- nuc_norm ^ gamma
+          mem_norm <- mem_norm ^ gamma
+
+          raster_df <- expand.grid(
+            x = seq(round(bbox$xmin), round(bbox$xmax), length.out = ncol(nuc)),
+            y = seq(round(bbox$ymin), round(bbox$ymax), length.out = nrow(nuc))
+          )
+          raster_df$red <- 0
+          raster_df$green <- as.vector(nuc_norm)
+          raster_df$blue <- as.vector(mem_norm)
+          raster_df$colour <- grDevices::rgb(
+            raster_df$red, raster_df$green, raster_df$blue
+          )
+
+          p <- p + ggplot2::geom_raster(
+            data = raster_df,
+            ggplot2::aes(x = x, y = y, fill = I(colour)), # nolint
+            inherit.aes = FALSE, alpha = 0.8
+          )
+        }
+      }, error = function(e) {
+        warning("Could not render background image in empty-geometry plot: ",
+                conditionMessage(e))
+      })
+    }
+
+    return(p)
   }
 
   # Get plot limits which are likely larger than the bounding box
@@ -110,9 +210,6 @@ plot_cell_geometries <- function(cells, nuclei, bbox, image = NULL) {
   # Colours for plotting when no image is provided
   cell_colour <- "#4daf4a"
   nuc_colour <- "#377eb8"
-  plot_title <- paste0("Objects overlapping area\n",
-                       "X: ", round(bbox$xmin), "-", round(bbox$xmax), ", ",
-                       "Y: ", round(bbox$ymin), "-", round(bbox$ymax))
 
   geom_plot <- ggplot2::ggplot(plot_data,
                   ggplot2::aes(x = x, y = y, group = id, colour = type)) # nolint
@@ -165,8 +262,29 @@ get_bbox <- function(coords) {
 get_random_bbox <- function(geom_data,
                             area_width = 500,
                             area_height = 500,
-                            min_objects = 10) {
-  all_bboxes <- lapply(geom_data$cell, function(coords) {
+                            min_objects = 10,
+                            geom_type = "cell") {
+  if (!geom_type %in% names(geom_data)) {
+    other_types <- intersect(c("cell", "nucleus"), names(geom_data))
+    if (length(other_types) == 0) stop("No geometries available in geom_data")
+    geom_type <- other_types[1]
+  }
+
+  coords_list <- geom_data[[geom_type]]
+  valid_coords <- vapply(coords_list, function(coords) {
+    !is.null(coords) &&
+      length(coords) > 0 &&
+      !is.null(dim(coords)) &&
+      length(dim(coords)) == 3 &&
+      dim(coords)[1] > 0 &&
+      dim(coords)[3] >= 2
+  }, logical(1))
+  coords_list <- coords_list[valid_coords]
+  if (length(coords_list) == 0) {
+    stop("No geometries available after filtering for type: ", geom_type)
+  }
+
+  all_bboxes <- lapply(coords_list, function(coords) {
     get_bbox(coords)
   })
 
@@ -182,8 +300,17 @@ get_random_bbox <- function(geom_data,
 
   while (attempt <= max_attempts) {
     # Random starting point
-    start_x <- runif(1, global_xmin, global_xmax - area_width)
-    start_y <- runif(1, global_ymin, global_ymax - area_height)
+    if ((global_xmax - global_xmin) <= area_width) {
+      start_x <- global_xmin
+    } else {
+      start_x <- runif(1, global_xmin, global_xmax - area_width)
+    }
+
+    if ((global_ymax - global_ymin) <= area_height) {
+      start_y <- global_ymin
+    } else {
+      start_y <- runif(1, global_ymin, global_ymax - area_height)
+    }
 
     area_bbox <- list(
       xmin = start_x,
@@ -218,18 +345,19 @@ get_random_bbox <- function(geom_data,
 # Get object IDs within area bounding box
 get_objects_in_area <- function(geom_data, area_bbox, type = "cell") {
   object_ids <- c()
-  coords <- list()
 
-  if (type == "cell") {
-    coords <- geom_data$cell
-  } else if (type == "nucleus") {
-    coords <- geom_data$nucleus
-  } else {
-    stop("Invalid type: ", type)
+  if (!type %in% names(geom_data)) {
+    # requested type not available, return empty vector
+    return(object_ids)
   }
+
+  coords <- geom_data[[type]]
 
   for (i in seq_along(coords)) {
     points <- coords[[i]]
+    if (is.null(points) || is.null(dim(points)) || length(dim(points)) != 3) {
+      next
+    }
     bb <- get_bbox(points)
 
     # Check if object overlaps with area
