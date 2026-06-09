@@ -32,6 +32,17 @@ params:
     mesmer_remove_border_cells: null
     mesmer_pixel_expansion: null
     mesmer_padding: null
+    run_cellsam: false
+    cellsam_bbox_threshold: null
+    cellsam_block_size: null
+    cellsam_overlap: null
+    cellsam_iou_depth: null
+    cellsam_iou_threshold: null
+    cellsam_use_wsi: null
+    cellsam_gauge_cell_size: null
+    cellsam_low_contrast_enhancement: null
+    cellsam_model_path: null
+    cellsam_min_area: null
 ---
 
 ```{r setup, include=FALSE}
@@ -76,8 +87,20 @@ mesmer_interior_threshold <- parse_value_arg(params$mesmer_interior_threshold)
 mesmer_maxima_smooth <- parse_value_arg(params$mesmer_maxima_smooth)
 mesmer_min_nuclei_area <- parse_value_arg(params$mesmer_min_nuclei_area)
 mesmer_remove_border_cells <- as.logical(params$mesmer_remove_border_cells)
-mesmer_pixel_expansion <- params$mesmer_pixel_expansion
+mesmer_pixel_expansion <- parse_value_arg(params$mesmer_pixel_expansion)
 mesmer_padding <- parse_value_arg(params$mesmer_padding)
+
+run_cellsam <- as.logical(params$run_cellsam)
+cellsam_bbox_threshold <- parse_value_arg(params$cellsam_bbox_threshold)
+cellsam_block_size <- parse_value_arg(params$cellsam_block_size)
+cellsam_overlap <- parse_value_arg(params$cellsam_overlap)
+cellsam_iou_depth <- parse_value_arg(params$cellsam_iou_depth)
+cellsam_iou_threshold <- parse_value_arg(params$cellsam_iou_threshold)
+cellsam_use_wsi <- as.logical(params$cellsam_use_wsi)
+cellsam_gauge_cell_size <- as.logical(params$cellsam_gauge_cell_size)
+cellsam_low_contrast_enhancement <- as.logical(params$cellsam_low_contrast_enhancement)
+cellsam_model_path <- parse_value_arg(params$cellsam_model_path)
+cellsam_min_area <- parse_value_arg(params$cellsam_min_area)
 ```
 
 ```{r detect_measurements, include=FALSE}
@@ -168,6 +191,27 @@ if (run_cellpose) {
       mesmer_remove_border_cells,
       mesmer_pixel_expansion,
       mesmer_padding
+    )
+  )
+  params_table <- rbind(params_table, params_to_add)
+} else if (run_cellsam) {
+  params_to_add <- data.frame(
+    Parameter = c("Method", "Bounding Box Threshold", "Block Size", "Overlap",
+                  "IoU Depth", "IoU Threshold", "Use WSI",
+                  "Gauge Cell Size", "Low Contrast Enhancement",
+                  "Model Path", "Min Area"),
+    Value = c(
+      "CellSAM",
+      cellsam_bbox_threshold,
+      cellsam_block_size,
+      cellsam_overlap,
+      cellsam_iou_depth,
+      cellsam_iou_threshold,
+      cellsam_use_wsi,
+      cellsam_gauge_cell_size,
+      cellsam_low_contrast_enhancement,
+      cellsam_model_path,
+      cellsam_min_area
     )
   )
   params_table <- rbind(params_table, params_to_add)

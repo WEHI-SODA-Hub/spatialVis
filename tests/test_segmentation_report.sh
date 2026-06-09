@@ -48,3 +48,24 @@ quarto render segmentation_report_template.qmd \
     -P mesmer_remove_border_cells:true \
     -P mesmer_pixel_expansion:3 \
     -P mesmer_padding:0
+
+quarto render segmentation_report_template.qmd \
+    --to html \
+    --no-cache \
+    --output segmentation_report_cellsam.html \
+    -P sample_name:$sample \
+    -P geojson_file:inst/extdata/segmentation.geojson \
+    -P image_file:test_data.tiff \
+    -P nuclear_channel:"Channel 1" \
+    -P membrane_channels:"Channel 2" \
+    -P run_cellsam:true \
+    -P cellsam_bbox_threshold:0.4 \
+    -P cellsam_block_size:600 \
+    -P cellsam_overlap:250 \
+    -P cellsam_iou_depth:250 \
+    -P cellsam_iou_threshold:0.5 \
+    -P cellsam_use_wsi:true \
+    -P cellsam_gauge_cell_size:false \
+    -P cellsam_low_contrast_enhancement:false \
+    -P cellsam_model_path:null \
+    -P cellsam_min_area:0
